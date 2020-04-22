@@ -15,23 +15,23 @@ setwd(
 source(paste0(getwd(),"/1DtransportMod_sourceCode_heg.R"))
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-### Inputs ###
+### Set Up Inputs
 ## time level inputs
 # these will include the timesteps across the simulation period
 # with relevant parms. the only required parameter in this table
 # is time (the bare min. scenario isjust drainage of water in the 
 # soil, nothing else)
-sim_length <- 3
+sim_length <- 10
 t_in <- data.frame(
-  time = 1:sim_length#,
-  #prec = rep(1,sim_length)
+  time = 1:sim_length,
+  prec = rep(1,sim_length)
 )
 ## depth level inputs
 # provide the inputs specific to each layer for the initial conditions
 # t=0. the min. requirements are depth of layer (depth), field capacity (fc),
 # and volumetric water content (vwc). Additional parameters can be included 
 # for different modules
-num_layers <- 5
+num_layers <- 3
 z_in <- data.frame(
   time = rep(0,num_layers),
   depth = rep(1,num_layers),
@@ -42,42 +42,23 @@ z_in <- data.frame(
 modules <- c("DrainModuleFC")
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-# the below will eventually consolidated into a class called SoilMod
-## Set Up Model 
-# TODO: make it's own class
-soilModData <- SoilModData$new(t_in,
-                               z_in)
-#soilModData$soilProfile$soil_layers
-
-# Run Soil Model 
-for(t in 1:nrow(soilModData$t_dat)){
-  # run drainage module (won't run either if both passed in) <- could be a setup error if two passed in ... stopifnot(length(grepl("DrainModule",modules))==1)
-  if(any(grepl("DrainModuleFC",modules)) & 
-     !any(grepl("DrainModuleRichards",modules))){
-    DrainModuleFC$
-      new(soilModData)$
-      setup()$
-      calculate()$
-      update(t)
-  }
-  if(any(grepl("DrainModuleRichards",modules)) & 
-     !any(grepl("DrainModuleFC",modules))){
-    
-  }
-  # etc.
-  # etc.
-}
+### Execute Simulation
+soilMod1d <- SoilMod1D$
+  # initialize model with t and z level tables & string of module names
+  new(t_in,z_in,modules)$
+  # run the model
+  run_fun()
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-## Visualize Outputs
-soilModData$plotDPxTime()
-soilModData$plotPxTime()
+### Visualize Outputs
+soilMod1d$soilModData$plot_dpXt() # deep perc vs time
+soilMod1d$soilModData$plot_pXt() # precip vs time 
 
-soilModData$t_dat
-#soilModData$z_dat
+soilMod1d$soilModData$t_dat # time level data outputs 
+#soilMod1d$soilModData$z_dat # depth level data outputs
 
 #for(i in 0:sim_length){
-#  print(soilModData$plotVWCxDepth(i))
+#  print(soilMod1d$soilModData$plot_vwcXz(i)) # vwc vs depth over time
 #  Sys.sleep(2)
 #}
 
