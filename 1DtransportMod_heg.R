@@ -14,7 +14,7 @@ setwd(
   )
 ) 
 ## packages and source code
-source(paste0(getwd(),"/1DtransportMod_sourceCode_heg_v1.R"))
+source(paste0(getwd(),"/1DtransportMod_sourceCode_heg.R"))
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ### Inputs ###
@@ -40,22 +40,34 @@ z_in <- data.frame(
   fc = rep(0.1,num_layers),
   vwc = rep(0.5,num_layers)
 )
+## modules
+modules <- c("DrainModuleFC")
+
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# the below will eventually consolidated into a class called SoilMod
 ## Set Up Model 
 # TODO: make it's own class
 soilModData <- SoilModData$new(t_in,
                                z_in)
-soilProfile <- SoilProfile$new(soilModData$z_dat)
-soilProfile$soil_layers
+#soilModData$soilProfile$soil_layers
 
-# Run Soil Model
+# Run Soil Model 
 for(t in 1:nrow(soilModData$t_dat)){
-  # run drainage module
-  DrainModuleFC$
-    new()$
-    setup(soilModData,soilProfile)$
-    calculate(soilProfile)$
-    update(soilModData,soilProfile,t)
+  # run drainage module (won't run either if both passed in) <- could be a setup error if two passed in ... stopifnot(length(grepl("DrainModule",modules))==1)
+  if(any(grepl("DrainModuleFC",modules)) & 
+     !any(grepl("DrainModuleRichards",modules))){
+    DrainModuleFC$
+      new(soilModData)$
+      setup()$
+      calculate()$
+      update(t)
+  }
+  if(any(grepl("DrainModuleRichards",modules)) & 
+     !any(grepl("DrainModuleFC",modules))){
+    
+  }
+  # etc.
+  # etc.
 }
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -63,15 +75,13 @@ for(t in 1:nrow(soilModData$t_dat)){
 soilModData$plotDPxTime()
 soilModData$plotPxTime()
 
+soilModData$t_dat
+#soilModData$z_dat
+
 #for(i in 0:sim_length){
 #  print(soilModData$plotVWCxDepth(i))
 #  Sys.sleep(2)
 #}
-
-soilModData$t_dat
-#soilModData$z_dat
-
-
 
 
 

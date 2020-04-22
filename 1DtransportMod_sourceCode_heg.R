@@ -23,34 +23,30 @@ SoilModData <- R6Class(
     # z level data
     z_dat = NULL,
     # soil profile
-    soil_profile = NULL,
+    soilProfile = NULL, # camelCase because this is an instantiation of a class (more than just a field)
     ## initialize
     initialize = function(t_dat,z_dat){
       ## check for requirements on the bare minimum for data
       stopifnot(is.data.frame(t_dat),
                 is.data.frame(z_dat),
                 any(grepl("time",names(t_dat))),
-                any(grepl("fc",names(z_dat))),
-                any(grepl("vwc",names(z_dat))),
                 any(grepl("depth",names(z_dat))),
                 is.numeric(t_dat$time),
-                is.numeric(z_dat$depth),
                 is.numeric(z_dat$time),
-                is.numeric(z_dat$fc),
-                is.numeric(z_dat$vwc),
+                is.numeric(z_dat$depth),
                 all(z_dat$depth>0),
-                all(z_dat$fc>0 & z_dat$fc<1),
-                all(z_dat$vwc>0 & z_dat$vwc<1),
-                length(unique(z_dat$time))==1,
-                unique(z_dat$time)==0)
+                length(unique(z_dat$time))==1, # can't have more than one time step for initial conditions
+                unique(z_dat$time)==0) # initial conditions have to have t=0
       ## initialize
       self$t_dat <- t_dat
       self$z_dat <- z_dat
       # add z to layers
       self$z_dat$z <- private$sumPrevNumFun(self$z_dat$depth)
+      self$soilProfile <- SoilProfile$new(self$z_dat)
     },
     ## plotting functions
     plotVWCxDepth = function(t){
+      stopifnot(any(grepl("vwc",names(self$z_dat))))
       pd <- subset(self$z_dat,
                    self$z_dat$time==t)
       for(i in 1:nrow(pd)){
@@ -133,6 +129,7 @@ SoilModData <- R6Class(
 
 SoilProfile <- R6Class(
   "SoilProfile",
+  lock_objects = FALSE,
   public = list(
     soil_layers = NULL,
     initialize = function(z_dat){
@@ -148,35 +145,59 @@ SoilProfile <- R6Class(
 DrainModuleFC <- R6Class(
   classname="DrainModuleFC",
   public = list(
-    initialize = function(){},
-    setup = function(soilModData,soilProfile){
-      if(any(grepl("prec",names(soilModData$t_dat)))){
-        soilProfile$soil_layers[[1]]$wTop <- soilModData$t_dat$prec[t]
+    soilModData = NULL,
+    initialize = function(soilModData){
+      stopifnot(exists("t_dat",soilModData),
+                exists("z_dat",soilModData),
+                exists("soilProfile",soilModData),
+                is.data.frame(soilModData$t_dat), # redundant to initializer in SoilModData?
+                is.data.frame(soilModData$z_dat), # redundant to initializer in SoilModData?
+                any(grepl("time",names(soilModData$t_dat))), # redundant to initializer in SoilModData?
+                any(grepl("fc",names(soilModData$z_dat))),
+                any(grepl("vwc",names(soilModData$z_dat))), 
+                any(grepl("depth",names(soilModData$z_dat))), # redundant to initializer in SoilModData?
+                is.numeric(soilModData$t_dat$time), # redundant to initializer in SoilModData?
+                is.numeric(soilModData$z_dat$depth), # redundant to initializer in SoilModData?
+                is.numeric(soilModData$z_dat$time), # redundant to initializer in SoilModData?
+                is.numeric(soilModData$z_dat$fc),
+                is.numeric(soilModData$z_dat$vwc), 
+                all(soilModData$z_dat$depth>0), # redundant to initializer in SoilModData?
+                all(soilModData$z_dat$vwc>0 & soilModData$z_dat$vwc<1),
+                # should check in soilProfile for things...
+                exists("soil_layers",soilModData$soilProfile)) #
+                
+      
+      self$soilModData <- soilModData
+    },
+    setup = function(){
+      if(any(grepl("prec",names(self$soilModData$t_dat)))){
+        self$soilModData$soilProfile$soil_layers[[1]]$wTop <- self$soilModData$t_dat$prec[t]
       }else{
-        soilProfile$soil_layers[[1]]$wTop <- 0
+        
+        self$soilModData$soilProfile$soil_layers[[1]]$wTop <- 0
       }
       return(invisible(self))
     },
-    calculate = function(soilProfile){
-      for(i in 1:length(soilProfile$soil_layers)){
-        soilProfile$soil_layers[[i]] <- private$drainFCfun(soilProfile$soil_layers[[i]])
-        if(i!=length(soilProfile$soil_layers)){
-          soilProfile$soil_layers[[i+1]]$wTop <- soilProfile$soil_layers[[i]]$wBot
+    calculate = function(){
+      for(i in 1:length(self$soilModData$soilProfile$soil_layers)){
+        self$soilModData$soilProfile$soil_layers[[i]] <- private$drainFCfun(self$soilModData$soilProfile$soil_layers[[i]])
+        if(i!=length(self$soilModData$soilProfile$soil_layers)){
+          self$soilModData$soilProfile$soil_layers[[i+1]]$wTop <- self$soilModData$soilProfile$soil_layers[[i]]$wBot
         }
       }
       return(invisible(self))
       
     },
-    update = function(soilModData,soilProfile,t){
+    update = function(t){
       ## need to update the t level data
-      soilModData$t_dat$deepPerc[t] <- soilProfile$soil_layers[[length(soilProfile$soil_layers)]]$wBot
+      self$soilModData$t_dat$deepPerc[t] <- self$soilModData$soilProfile$soil_layers[[length(self$soilModData$soilProfile$soil_layers)]]$wBot
       
       ## need to update the z level data
       z_dat_append <- do.call(rbind.data.frame,
-                              soilProfile$soil_layers %>%
+                              self$soilModData$soilProfile$soil_layers %>%
                                 lapply(as.data.frame))
       z_dat_append$time <- t
-      soilModData$z_dat <- bind_rows(soilModData$z_dat,z_dat_append)
+      self$soilModData$z_dat <- bind_rows(self$soilModData$z_dat,z_dat_append)
       return(invisible(self))
     }
   ),
@@ -208,9 +229,9 @@ Foo <- R6Class(
   )
 )
 foo <- Foo$new(5)
-
-FooBar <- R6Class(
-  classname = "FooBar",
+foo$x
+FooBarNoFlds <- R6Class(
+  classname = "FooBarNoFlds",
   public = list(
     initialize = function(){},
     funfun = function(foo){
@@ -218,7 +239,45 @@ FooBar <- R6Class(
     }
   )
 )
-FooBar$new()$funfun(foo)
+FooBarNoFlds$new()$funfun(foo)
+foo$x
+
+## i thought this should work
+foo2 <- Foo$new(5)
+FooBarWithFlds <- R6Class(
+  classname = "FooBarWithFlds",
+  public = list(
+    x = NULL,
+    initialize = function(x){
+      self$x <- x
+    },
+    funfun = function(){
+      self$x <- self$x + 1
+    }
+  )
+)
+FooBarWithFlds$new(foo2$x)$funfun()
+foo2$x
+
+
+
+## this works
+foo2 <- Foo$new(5)
+FooBarWithFlds <- R6Class(
+  classname = "FooBarWithFlds",
+  public = list(
+    y = NULL,
+    initialize = function(y){
+      self$y <- y
+    },
+    funfun = function(){
+      self$y$x <- self$y$x + 1
+    }
+  )
+)
+FooBarWithFlds$new(foo2)$funfun()
+foo2
+
 
 
 
