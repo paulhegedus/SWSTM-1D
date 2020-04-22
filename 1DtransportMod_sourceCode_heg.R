@@ -15,6 +15,41 @@ library(DescTools)
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ### Classes ###
+SoilMod1D <- R6Class(
+  "SoilMod1D",
+  public = list(
+    soilModData = NULL,
+    modules = NULL,
+    initialize = function(t_in,z_in,modules){
+      stopifnot(
+        any(grepl("DrainModule",modules)), # must have a drainage module selected
+        length(which(grepl("DrainModule",modules)==TRUE))==1 # only 1 drain module allowed
+        # ... add more conditions with more module options ...
+      )
+      self$modules <- modules
+      self$soilModData <- SoilModData$new(t_in,z_in)
+    },
+    run_fun = function(){
+      for(t in 1:nrow(self$soilModData$t_dat)){
+        ## drainage module
+        if(any(grepl("DrainModuleFC",self$modules))){
+          DrainModuleFC$
+            new(self$soilModData,t)$
+            setup()$
+            calculate()$
+            update()
+        }
+        if(any(grepl("DrainModuleRichards",self$modules))){
+          # do richards stuff
+        }
+        ## next models
+        # etc.
+      }
+      return(invisible(self))
+    }
+  )
+)
+
 SoilModData <- R6Class(
   "SoilModData",
   public = list(
@@ -41,11 +76,11 @@ SoilModData <- R6Class(
       self$t_dat <- t_dat
       self$z_dat <- z_dat
       # add z to layers
-      self$z_dat$z <- private$sumPrevNumFun(self$z_dat$depth)
+      self$z_dat$z <- private$sum_prev_num_fun(self$z_dat$depth)
       self$soilProfile <- SoilProfile$new(self$z_dat)
     },
     ## plotting functions
-    plotVWCxDepth = function(t){
+    plot_vwcXz = function(t){
       stopifnot(any(grepl("vwc",names(self$z_dat))))
       pd <- subset(self$z_dat,
                    self$z_dat$time==t)
@@ -74,11 +109,13 @@ SoilModData <- R6Class(
       ## TODO: add in depth units
       print(p)
     },
-    plotDPxTime = function(){
+    plot_dpXt = function(){
       stopifnot(any(grepl("deepPerc",names(self$t_dat))))
       pd <- self$t_dat
-      ymax <- RoundTo(max(pd$deepPerc),1)
+      ymax <- RoundTo(max(pd$deepPerc),1,ceiling)
       ystep <- -(ymax-0)/10
+      xstep <- (max(pd$time)-0)/10
+      
       p <- ggplot(pd,
                   aes(x=time,
                       y=deepPerc)) +
@@ -88,17 +125,21 @@ SoilModData <- R6Class(
         scale_y_reverse(limits=c(ymax,0),
                         labels=seq(ymax,0,ystep),
                         breaks=seq(ymax,0,ystep)) +
-        scale_x_continuous(position = "top") +
+        scale_x_continuous(position = "top",
+                           limits=c(0.5,max(pd$time)+0.5),
+                           breaks = seq(1,max(pd$time),xstep)) +
         labs(y="Deep Percolation",x="Time Step") +
         theme_classic() 
       ## TODO: add in depth & time units
       print(p)
     },
-    plotPxTime = function(){
+    plot_pXt = function(){
       stopifnot(any(grepl("prec",names(self$t_dat))))
       pd <- self$t_dat
-      ymax <- RoundTo(max(pd$prec),1)
+      ymax <- RoundTo(max(pd$prec),1,ceiling)
       ystep <- -(ymax-0)/10
+      xstep <- (max(pd$time)-0)/10
+      
       p <- ggplot(pd,
                   aes(x=time,
                       y=prec)) +
@@ -108,7 +149,9 @@ SoilModData <- R6Class(
         scale_y_reverse(limits=c(ymax,0),
                         labels=seq(ymax,0,ystep),
                         breaks=seq(ymax,0,ystep)) +
-        scale_x_continuous(position = "top") +
+        scale_x_continuous(position = "top",
+                           limits=c(0.5,max(pd$time)+0.5),
+                           breaks = seq(1,max(pd$time),xstep)) +
         labs(y="Precipitation",x="Time Step") +
         theme_classic() 
       ## TODO: add in depth & time units
@@ -116,7 +159,7 @@ SoilModData <- R6Class(
     }
   ),
   private = list(
-    sumPrevNumFun = function(vec){
+    sum_prev_num_fun = function(vec){
       stopifnot(is.numeric(vec),
                 length(vec)>1) 
       for(i in 2:length(vec)){ 
@@ -145,8 +188,9 @@ SoilProfile <- R6Class(
 DrainModuleFC <- R6Class(
   classname="DrainModuleFC",
   public = list(
-    soilModData = NULL,
-    initialize = function(soilModData){
+    soilModData = NULL, # camelCase because a class and not just field
+    t = NULL, # have to know the timestep
+    initialize = function(soilModData,t){
       stopifnot(exists("t_dat",soilModData),
                 exists("z_dat",soilModData),
                 exists("soilProfile",soilModData),
@@ -163,15 +207,14 @@ DrainModuleFC <- R6Class(
                 is.numeric(soilModData$z_dat$vwc), 
                 all(soilModData$z_dat$depth>0), # redundant to initializer in SoilModData?
                 all(soilModData$z_dat$vwc>0 & soilModData$z_dat$vwc<1),
-                # should check in soilProfile for things...
-                exists("soil_layers",soilModData$soilProfile)) #
-                
-      
+                exists("soil_layers",soilModData$soilProfile),
+                is.numeric(t)) #
       self$soilModData <- soilModData
+      self$t <- t
     },
     setup = function(){
       if(any(grepl("prec",names(self$soilModData$t_dat)))){
-        self$soilModData$soilProfile$soil_layers[[1]]$wTop <- self$soilModData$t_dat$prec[t]
+        self$soilModData$soilProfile$soil_layers[[1]]$wTop <- self$soilModData$t_dat$prec[self$t]
       }else{
         
         self$soilModData$soilProfile$soil_layers[[1]]$wTop <- 0
@@ -180,7 +223,7 @@ DrainModuleFC <- R6Class(
     },
     calculate = function(){
       for(i in 1:length(self$soilModData$soilProfile$soil_layers)){
-        self$soilModData$soilProfile$soil_layers[[i]] <- private$drainFCfun(self$soilModData$soilProfile$soil_layers[[i]])
+        self$soilModData$soilProfile$soil_layers[[i]] <- private$drain_fc_fun(self$soilModData$soilProfile$soil_layers[[i]])
         if(i!=length(self$soilModData$soilProfile$soil_layers)){
           self$soilModData$soilProfile$soil_layers[[i+1]]$wTop <- self$soilModData$soilProfile$soil_layers[[i]]$wBot
         }
@@ -188,21 +231,22 @@ DrainModuleFC <- R6Class(
       return(invisible(self))
       
     },
-    update = function(t){
-      ## need to update the t level data
-      self$soilModData$t_dat$deepPerc[t] <- self$soilModData$soilProfile$soil_layers[[length(self$soilModData$soilProfile$soil_layers)]]$wBot
+    update = function(){
+      ## update the t level data
+      self$soilModData$t_dat$deepPerc[self$t] <- self$soilModData$soilProfile$soil_layers[[length(self$soilModData$soilProfile$soil_layers)]]$wBot
       
-      ## need to update the z level data
+      ## update the z level data
       z_dat_append <- do.call(rbind.data.frame,
                               self$soilModData$soilProfile$soil_layers %>%
                                 lapply(as.data.frame))
-      z_dat_append$time <- t
+      z_dat_append$time <- self$t
       self$soilModData$z_dat <- bind_rows(self$soilModData$z_dat,z_dat_append)
+      
       return(invisible(self))
     }
   ),
   private = list(
-    drainFCfun = function(soil_layer){
+    drain_fc_fun = function(soil_layer){
       soil_layer$vwc <- soil_layer$vwc + soil_layer$wTop
       if(soil_layer$vwc > soil_layer$fc){
         soil_layer$wBot <- soil_layer$vwc - soil_layer$fc * soil_layer$depth
@@ -216,9 +260,9 @@ DrainModuleFC <- R6Class(
 )
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#### Classes ####
+#### sandbox ####
 
-## test case
+## mutability tests
 Foo <- R6Class(
   "Foo",
   public = list(
@@ -258,11 +302,10 @@ FooBarWithFlds <- R6Class(
 )
 FooBarWithFlds$new(foo2$x)$funfun()
 foo2$x
-
-
+# ^ not passing entire class in so makes a copy?
 
 ## this works
-foo2 <- Foo$new(5)
+foo3 <- Foo$new(5)
 FooBarWithFlds <- R6Class(
   classname = "FooBarWithFlds",
   public = list(
@@ -275,8 +318,8 @@ FooBarWithFlds <- R6Class(
     }
   )
 )
-FooBarWithFlds$new(foo2)$funfun()
-foo2
+FooBarWithFlds$new(foo3)$funfun()
+foo3
 
 
 
