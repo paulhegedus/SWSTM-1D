@@ -14,7 +14,7 @@ setwd(
   )
 ) 
 ## packages and source code
-source(paste0(getwd(),"/1DtransportMod_sourceCode_heg_v1.R"))
+source(paste0(getwd(),"/1DtransportMod_sourceCode_heg.R"))
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ### Inputs ###
