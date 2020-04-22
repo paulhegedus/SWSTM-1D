@@ -4,7 +4,6 @@
 ## Description:
 ## see flowcharts for overview  ... etc.
 ##
-##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ## set working directory to script location
 setwd(
