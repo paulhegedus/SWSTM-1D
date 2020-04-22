@@ -4,7 +4,6 @@
 ## Description:
 ## see flowcharts for overview  ... etc.
 ##
-## v1: drainage module
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ## set working directory to script location
