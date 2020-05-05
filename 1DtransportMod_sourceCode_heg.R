@@ -29,6 +29,9 @@ SoilMod1D <- R6Class(
       self$modules <- modules
       self$soilModData <- SoilModData$new(t_in,z_in)
     },
+    ## ***** TODO *******
+    ## need to put a set up fun... so need to rewrite set up functions
+    
     run_fun = function(){
       for(t in 1:nrow(self$soilModData$t_dat)){
         ## drainage module
@@ -62,16 +65,18 @@ SoilModData <- R6Class(
     ## initialize
     initialize = function(t_dat,z_dat){
       ## check for requirements on the bare minimum for data
-      stopifnot(is.data.frame(t_dat),
-                is.data.frame(z_dat),
-                any(grepl("time",names(t_dat))),
-                any(grepl("depth",names(z_dat))),
-                is.numeric(t_dat$time),
-                is.numeric(z_dat$time),
-                is.numeric(z_dat$depth),
-                all(z_dat$depth>0),
-                length(unique(z_dat$time))==1, # can't have more than one time step for initial conditions
-                unique(z_dat$time)==0) # initial conditions have to have t=0
+      stopifnot(
+        is.data.frame(t_dat),
+        is.data.frame(z_dat),
+        any(grepl("time",names(t_dat))),
+        any(grepl("depth",names(z_dat))),
+        is.numeric(t_dat$time),
+        is.numeric(z_dat$time), # *
+        is.numeric(z_dat$depth),
+        all(z_dat$depth>0),
+        length(unique(z_dat$time))==1, # can't have more than one time step for initial conditions
+        unique(z_dat$time)==0
+      ) # initial conditions have to have t=0
       ## initialize
       self$t_dat <- t_dat
       self$z_dat <- z_dat
@@ -172,7 +177,7 @@ SoilModData <- R6Class(
 
 SoilProfile <- R6Class(
   "SoilProfile",
-  lock_objects = FALSE,
+  #lock_objects = FALSE,
   public = list(
     soil_layers = NULL,
     initialize = function(z_dat){
@@ -213,6 +218,9 @@ DrainModuleFC <- R6Class(
       self$t <- t
     },
     setup = function(){
+      ##**** TODO 
+      ## make a setter function for adding columns
+      ## make it generala... addCol <- function(df,newColName,default)
       if(any(grepl("prec",names(self$soilModData$t_dat)))){
         self$soilModData$soilProfile$soil_layers[[1]]$wTop <- self$soilModData$t_dat$prec[self$t]
       }else{
