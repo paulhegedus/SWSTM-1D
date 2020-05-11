@@ -55,7 +55,7 @@ soilMod1d <- SoilMod1D$
   # initialize model with t and z level tables & string of module names
   new(t_in,z_in,modules)$
   # run the model
-  run_fun()
+  simRunFun()
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ### Visualize Outputs
@@ -65,10 +65,10 @@ soilMod1d$soilModData$plot_pXt() # precip vs time
 #soilMod1d$soilModData$t_dat # time level data outputs 
 #soilMod1d$soilModData$z_dat # depth level data outputs
 
-#for(i in 0:sim_length){
-#  print(soilMod1d$soilModData$plot_vwcXz(i)) # vwc vs depth over time
-#  Sys.sleep(2)
-#}
+for(i in 0:sim_length){
+  print(soilMod1d$soilModData$plot_vwcXz(i)) # vwc vs depth over time
+  i=Sys.sleep(2)
+}
 
 
 
