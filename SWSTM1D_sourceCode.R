@@ -62,13 +62,13 @@ SWSTM1D <- R6Class(
   "SWSTM1D",
   public = list(
     # attributes/fields
-    soilModDat = NA, # soil model data object
+    soilModData = NA, # soil model data object
     soilModList = NA,
     
     # methods
     initialize = function(tIn,zIn,mIn){
       # 1) initialize object of SoilModData class
-      self$soilModDat <- SoilModData$new(
+      self$soilModData <- SoilModData$new(
         tIn, # time level inputs
         zIn # depth level inputs
       )
@@ -84,15 +84,21 @@ SWSTM1D <- R6Class(
     },
     setup = function(){
       # 1) loads modules from 'modules' folder
-      lapply(
-        self$soilModList, # sources each module 
+      ## ???????????????
+      self$soilModList <- lapply(
+        self$soilModList, # sources each module & 
         private$loadModules # ?? need to initialize each module in the list here ??
       )
+      ## ???????????????
       # 2) amends soilModData structures based on modules
       lapply(
         self$soilModList ,
         private$setupModules # calls setup method of each module
       )
+      # 3) make soil profile
+      # this is done after modules amend and fill in tDat and zDat b/c soilProfile
+      # made of zDat and updates zDat thru sim
+      self$soilModData$buildSoilProfile()
     },
     execute = function(){
       # 1) loop over every time step
@@ -100,26 +106,30 @@ SWSTM1D <- R6Class(
       for(t in 1:nrow(self$soiModDat$tDat)){
         lapply(
           self$soilModList ,
-          private$runModules, # <- ?? outputter called in here ??
+          private$runModules, 
           t # takes the time step
         )
-        # ?? or call outputter here... or both ??
+        # ?? call outputter here ??
       }
     },
     output = function(){
       # 1) save module specific outputs to 'outputs' folder from each module
       lapply(
         self$soilModList ,
-        private$plotModules # <- should be outputter ??
+        private$plotModules # ?? should be outputter instead ??
       )
     }
   ),
   private = list(
+    ## ???????????????
     loadModules = function(MODULE){
-      # ?? make the element of the soilModList an initialized module ??
-      MODULE <- source(paste0(getwd(),"/modules/",MODULE,".R")) 
-      # ??
+      # ?? source module then initialize ??
+      # source(paste0(getwd(),"/modules/",MODULE,".R")) 
+      # MODULE <- ?? initialize module here ??
+      # MODULE <- source()??
     }, 
+    ## ???????????????
+    
     setupModules = function(MODULE){
       MODULE$setup() # module specific setup
     },
@@ -129,9 +139,9 @@ SWSTM1D <- R6Class(
       # ?? outputter called in here ??
     },
     plotModules = function(MODULE){
-      MODULE$plotGen() # generate module specific plots
+      MODULE$plotGen() # ?? could be outputter ??
     }
-    # ?? ^ could be outputter ??
+    
   )
 )
 
@@ -151,10 +161,10 @@ SoilModData <- R6Class(
 
     ## methods
     initialize = function(tDat,zDat){
-      # check for requirements on the bare minimum for data
+      # check for minimum requirements 
       stopifnot(
-        is.data.table(tDat), # table with each row a time increment
-        is.data.table(zDat), # table with each row a depth increment
+        is.data.frame(tDat), # table with each row a time increment
+        is.data.frame(zDat), # table with each row a depth increment
         any(grepl("time",names(tDat))), # col indicates time step 
         any(grepl("time",names(zDat))), # col indicates time step 
         any(grepl("depth",names(zDat))), # depth of layer increment
@@ -171,7 +181,19 @@ SoilModData <- R6Class(
       self$zDat <- zDat
       
       self$zDat$z <- private$sumPrevNumFun(self$zDat$depth) # add z (depth) to zDat
-      self$soilProfile <- SoilProfile$new(self$zDat) # initialize soilProfile class w/zDat
+    },
+    buildSoilProfile = function(){
+      # make soil profile a list of layers
+      self$soilProfile <- apply(
+        self$zDat, 
+        1,
+        as.list
+      )
+      # remove time from soil layers (unnecessary)
+      lapply(
+        self$soilProfile,
+        function(zdat) zdat$time <- NULL
+      )
     }
   ),
   private = list(
@@ -184,26 +206,6 @@ SoilModData <- R6Class(
         vec[i] <- vec[i] + vec[i-1]
       }
       return(vec)
-    }
-  )
-)
-
-##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#### SoilProfile Class ####
-##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-SoilProfile <- R6Class(
-  "SoilProfile",
-  public = list(
-    soilLayers = NULL,
-    initialize = function(zDat){
-      # remove time column from soil profile 
-      zDat$time <- NULL # irrelevant col when object used in sim
-      # make soil profile
-      self$soilLayers <- apply(
-        zDat, 
-        1,
-        as.list
-      )
     }
   )
 )

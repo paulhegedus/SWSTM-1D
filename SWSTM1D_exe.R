@@ -55,21 +55,24 @@ swstm1d <- SWSTM1D$new(
       getwd(),
       "/inputs/tIn_dat.csv"
     )
-  ),
+  ) %>%
+  as.data.frame(), # need to choose between data.table and data.frame
   # depth level inputs
   zIn = fread(
     paste0(
       getwd(),
       "/inputs/zIn_dat.csv"
     )
-  ),
+  ) %>%
+  as.data.frame(),
   # table with module names
   mIn = fread(
     paste0(
       getwd(),
       "/inputs/moduleSlctIn_dat.csv"
     )
-  )
+  ) %>%
+  as.data.frame()
 )
 
 ## run the soil sim set up function
