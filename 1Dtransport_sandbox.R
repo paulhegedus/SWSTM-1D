@@ -1,3 +1,11 @@
+
+MODULE <- "DrainModuleFC"
+source(paste0(modPath,"/modules/",MODULE,".R"))
+modList <- rep(list(NA),2)
+
+modList[[1]] <- DrainModuleFC$new(swstm1d$soilModData)
+modList[[2]] <- eval(parse(text=paste0(MODULE,"$new(swstm1d$soilModData)")))
+
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ## PLOT FXNS ####
 ## need to go into specific modules OG in soilModData class
