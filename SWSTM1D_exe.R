@@ -10,82 +10,50 @@
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #### Set up workspace ####
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-## set working directory to script location (Rstudio version)
-setwd(
-  dirname(
-    rstudioapi::getActiveDocumentContext()$path
-  )
-) 
-## source the 'sourceCode' script that checks paths to modules & other locations.
-## imports all the appropriate classes, functions, and packages. 
+##------------------
+## USER INPUTS
+##------------------
+# path to model files location
+modPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/swstm1D/dev/Code"
+# path to location of 'inputs' folder; outputs put here (does not need to be same as model)
+ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/swstm1D/dev/Test"
+# string of module names
+mIn <- c("DrainModuleFC") 
+##------------------
+## source the 'sourceCode' script with non-module specific R6ClassGenerators &
+## package loading & function for checking for model requirements
 source(
   paste0(
-    getwd(),
+    modPath,
     "/SWSTM1D_sourceCode.R"
-    )
   )
+)
+## check module & io (inputs/outputs) path
+checkForModelReqs(
+  modPath,
+  ioPath
+)
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #### Set up model  ####
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-# see SWSTM1D_inputGen.R for making req inputs in correct format
-# code below runs the script (will overwrite csv's)
-#setwd(paste0(getwd(),"/inputs")) # set to inputs folder 
-#source(
-#  paste0(
-#    getwd(),
-#    "/SWSTM1D_inputGen.R" # makes the csv's imported below (can manually edit too)
-#    )
-#  ) 
-#setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # set back to exe location
-
-## ?? initialize outputter ??
-#swstm1d_op <- 
-#  SWSTM1d_OP$new(
-# initialize the outputter 
-# TODO: makes the 'outputs' folder
-#  )
-
-## initialize the soil sim model
-# 1) get data from the 'inputs' folder
-# 2) initialize soilModData class
+## 1) generate SWSTM1D class object
 swstm1d <- SWSTM1D$new(
-  # time level inputs
-  tIn = fread(
-    paste0(
-      getwd(),
-      "/inputs/tIn_dat.csv"
-    )
-  ) %>%
-  as.data.frame(), # need to choose between data.table and data.frame
-  # depth level inputs
-  zIn = fread(
-    paste0(
-      getwd(),
-      "/inputs/zIn_dat.csv"
-    )
-  ) %>%
-  as.data.frame(),
-  # table with module names
-  mIn = fread(
-    paste0(
-      getwd(),
-      "/inputs/moduleSlctIn_dat.csv"
-    )
-  ) %>%
-  as.data.frame()
+  # path and module info
+  modPath = modPath,
+  ioPath = ioPath,
+  mIn = mIn
 )
-
-## run the soil sim set up function
-swstm1d$setup() ## ?? TODO: loadModules
-
+## 2) run the soil sim set up function
+swstm1d$setup() 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #### Execute simulation ####
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+## 3) execute the soil sim modules
 swstm1d$execute() 
-
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #### Plot/Save outputs ####
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+## 4) plot and save final outputs
 swstm1d$output() 
 
 
