@@ -32,22 +32,21 @@ library(data.table)
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #### Check Model Space ####
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-# if no modules folder return error
-if(!file.exists(paste0(getwd(),"/modules"))){
-  stop("No 'modules' folder present.")
-}
-# if no inputs folder return error
-if(!file.exists(paste0(getwd(),"/inputs"))){
-  stop("No 'inputs' folder present.")
-}else{
-  if(!file.exists(paste0(getwd(),"/inputs/tIn_dat.csv"))){
-    stop("Time level inputs named 'tIn_dat.csv' required.")
+checkForModelReqs <- function(modPath,ioPath){
+  # if no modules folder return error
+  if(!file.exists(paste0(modPath,"/modules"))){
+    stop("Path to 'modules' empty.")
   }
-  if(!file.exists(paste0(getwd(),"/inputs/zIn_dat.csv"))){
-    stop("Depth (t=0) level inputs named 'zIn_dat.csv' required.")
-  }
-  if(!file.exists(paste0(getwd(),"/inputs/moduleSlctIn_dat.csv"))){
-    stop("Column of module names required in file named 'moduleSlctIn_dat.csv'.")
+  # if no inputs folder return error
+  if(!file.exists(paste0(ioPath,"/inputs"))){
+    stop("Path to 'inputs' empty.")
+  }else{
+    if(!file.exists(paste0(ioPath,"/inputs/tIn_dat.csv"))){
+      stop("Time level inputs ('tIn_dat.csv') not found.")
+    }
+    if(!file.exists(paste0(ioPath,"/inputs/zIn_dat.csv"))){
+      stop("Depth (t=0) level inputs ('zIn_dat.csv') not found.")
+    }
   }
 }
 
@@ -62,86 +61,118 @@ SWSTM1D <- R6Class(
   "SWSTM1D",
   public = list(
     # attributes/fields
-    soilModData = NA, # soil model data object
-    soilModList = NA,
+    soilModData = NULL, # soil model data object
+    soilModList = NULL, # list of modules 
+    
     
     # methods
-    initialize = function(tIn,zIn,mIn){
+    initialize = function(modPath,ioPath,mIn){
       # 1) initialize object of SoilModData class
       self$soilModData <- SoilModData$new(
-        tIn, # time level inputs
-        zIn # depth level inputs
+        # time level inputs
+        tDat = fread(
+          paste0(
+            ioPath
+            ,"/inputs/tIn_dat.csv"
+          )
+        ) %>%
+          as.data.frame(), 
+        # depth level inputs
+        zDat = fread(
+          paste0(
+            ioPath,
+            "/inputs/zIn_dat.csv"
+          )
+        ) %>%
+          as.data.frame(),
+        modPath = modPath, # path to model
+        ioPath = ioPath # path to inputs/outputs
       )
+      # 3) make module list
       stopifnot(
         !is.null(mIn) # make sure not null
       )
-      if(!all(sapply(mIn,is.character))){
-        mIn$moduleNames <- mIn$moduleNames %>% 
-          as.character() # all module names are changed to characters
+      if(!all(is.character(mIn))){
+        mIn <-  as.character(mIn) # all module names are changed to characters
       }
-      self$soilModList <- as.list(mIn$moduleNames) %>% # make list of module names
-        `names<-`(mIn$moduleNames) # make names of modList the module names
+      self$soilModList <- as.list(mIn) %>% # make list of module names
+        `names<-`(mIn) # make names of modList the module names
     },
     setup = function(){
-      # 1) loads modules from 'modules' folder
-      ## ???????????????
+      # 1) loads & intializes modules from 'modules' folder
       self$soilModList <- lapply(
-        self$soilModList, # sources each module & 
-        private$loadModules # ?? need to initialize each module in the list here ??
+        self$soilModList, 
+        private$loadModules # sources each module & initializes
       )
-      ## ???????????????
       # 2) amends soilModData structures based on modules
       lapply(
         self$soilModList ,
         private$setupModules # calls setup method of each module
       )
-      # 3) make soil profile
+      # 3) make soil profile 
       # this is done after modules amend and fill in tDat and zDat b/c soilProfile
       # made of zDat and updates zDat thru sim
       self$soilModData$buildSoilProfile()
     },
     execute = function(){
-      # 1) loop over every time step
-      # 2) run all the modules and update outputs
+      # loop over every time step & run selected modules
       for(t in 1:nrow(self$soiModDat$tDat)){
         lapply(
-          self$soilModList ,
-          private$runModules, 
-          t # takes the time step
+          self$soilModList, # list of modules
+          private$runModules, # private fxn for running execute() and update() methods
+          t # time step
         )
-        # ?? call outputter here ??
+        
+        ## ** OP OP OP 
+        ## ** zSave_t() # save zDat @ t
+        ## ** OP OP OP 
+        
       }
     },
     output = function(){
-      # 1) save module specific outputs to 'outputs' folder from each module
-      lapply(
-        self$soilModList ,
-        private$plotModules # ?? should be outputter instead ??
-      )
+      
+      ## ** OP OP OP 
+      ## tSave_T() # save final tDat
+      
+      ## genPlotGen() # general plot generation from across simulation
+      
+      ## lapply(modulePlots) # apply across modules and run plots_T() method 
+      
+      ## ** OP OP OP 
+      
+      
+      
+      ## call to outputter for path to the
+      ## outputs folder and do stuff to make general plots?
+      
+      ## apply across module specifc outputters and make 
+      ## any final plots
+      #lapply(
+      #  self$soilModList ,
+      #  private$plotModules # ?? should be outputter instead ??
+      #)
     }
   ),
   private = list(
-    ## ???????????????
     loadModules = function(MODULE){
-      # ?? source module then initialize ??
-      # source(paste0(getwd(),"/modules/",MODULE,".R")) 
-      # MODULE <- ?? initialize module here ??
-      # MODULE <- source()??
+      # 1) source module
+      source(paste0(self$soilModData$modPath,"/modules/",MODULE,".R"))
+      # 2) initialize module (check for req inputs in module setup?)
+      MODULE <- eval(parse(text=paste0(MODULE,"$new(self$soilModData)")))
+      return(MODULE)
     }, 
-    ## ???????????????
-    
     setupModules = function(MODULE){
       MODULE$setup() # module specific setup
     },
-    runModules = function(MODULE,t){
+    runModules = function(MODULE,t){ # MODULE_OP
       MODULE$execute(t) # execute module
-      MODULE$update(t) # update soilModData from module
-      # ?? outputter called in here ??
+      MODULE$update(t) # update t level soilModData from module
+    #  MODULE_OP$zSave_t(t) # saves module specific zDat for t increment
+    #  MODULE_OP$zPlot_t(t) # plots module specific zDat info for t incrememnt
     },
     plotModules = function(MODULE){
-      MODULE$plotGen() # ?? could be outputter ??
+      #MODULE$plotGen() # ?? could be outputter ??
     }
-    
   )
 )
 
@@ -150,7 +181,9 @@ SWSTM1D <- R6Class(
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # class that holds t (time) and z (depth) level data frames with inputs/outputs
 # as well as the soilProfile object that is updated during the simulation 
-# (private object?). 
+# (private object?). This also holds the path to modules and inputs/outputs
+# so that when modules are instantiated with this class of object, they will 
+# know where to look for any data specific to them
 SoilModData <- R6Class(
   classname = "SoilModData",
   public = list(
@@ -158,11 +191,15 @@ SoilModData <- R6Class(
     tDat = NULL, # t-level data
     zDat = NULL,    # z level data
     soilProfile = NULL, # soil profile class
-
+    modPath = NULL, # path to model
+    ioPath = NULL, # path to inputs/outputs
+    
     ## methods
-    initialize = function(tDat,zDat){
+    initialize = function(tDat,zDat,modPath,ioPath){
       # check for minimum requirements 
       stopifnot(
+        is.character(modPath),
+        is.character(ioPath),
         is.data.frame(tDat), # table with each row a time increment
         is.data.frame(zDat), # table with each row a depth increment
         any(grepl("time",names(tDat))), # col indicates time step 
@@ -179,21 +216,13 @@ SoilModData <- R6Class(
       # initialize
       self$tDat <- tDat
       self$zDat <- zDat
+      self$modPath <- modPath
+      self$ioPath <- ioPath
       
       self$zDat$z <- private$sumPrevNumFun(self$zDat$depth) # add z (depth) to zDat
     },
     buildSoilProfile = function(){
-      # make soil profile a list of layers
-      self$soilProfile <- apply(
-        self$zDat, 
-        1,
-        as.list
-      )
-      # remove time from soil layers (unnecessary)
-      lapply(
-        self$soilProfile,
-        function(zdat) zdat$time <- NULL
-      )
+      self$soilProfile <- SoilProfile$new(self$zDat)
     }
   ),
   private = list(
@@ -211,10 +240,25 @@ SoilModData <- R6Class(
 )
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#### SoilProfile Class ####
+##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+SoilProfile <- R6Class(
+  "SoilProfile",
+  public = list( 
+    soilLayers = NULL,
+    initialize = function(zDat){ 
+      # remove time column from soil profile 
+      # b/c irrelevant when updated
+      zDat$time <- NULL
+      # make soil profile
+      self$soilLayers <-  apply(zDat,1,as.list)
+    }
+  ) 
+) 
+
+##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #### OutPutter Class ####
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-
 
 
 
