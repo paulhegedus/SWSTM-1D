@@ -12,17 +12,18 @@
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ## set working directory to script location (Rstudio version)
-#setwd(
-#  dirname(
-#    rstudioapi::getActiveDocumentContext()$path
-#  )
-#) 
+setwd(
+  dirname(
+    rstudioapi::getActiveDocumentContext()$path
+  )
+) 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ## Standard Inputs ####
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ## general inputs
 sim_length <- 10 # simulation length
 num_layers <- 5 # number of soil depth increments
+ioPath <- getwd() # 'C:/etc. ~/etc.'
 
 ## time level inputs
 # these will include the timesteps across the simulation period
@@ -33,7 +34,7 @@ t_in <- data.frame(
   time = 1:sim_length, # time starts at 1
   prec = rep(0,sim_length) # precips for each time step of sim
 )
-write.csv(t_in,paste0(getwd(),"/tIn_dat.csv"),row.names=FALSE)
+write.csv(t_in,paste0(ioPath,"/tIn_dat.csv"),row.names=FALSE)
 
 ## depth level inputs
 # provide the inputs specific to each layer for the initial conditions
@@ -43,16 +44,24 @@ write.csv(t_in,paste0(getwd(),"/tIn_dat.csv"),row.names=FALSE)
 z_in <- data.frame(
   time = rep(0,num_layers), # always initial conditions
   depth = rep(1,num_layers), # depth of each increment
-  fc = rep(0.1,num_layers), # field capacities across each increment
   vwc = rep(0.5,num_layers) # vwc of each increment
 )
-write.csv(z_in,paste0(getwd(),"/zIn_dat.csv"),row.names=FALSE)
+write.csv(z_in,paste0(ioPath,"/zIn_dat.csv"),row.names=FALSE)
 
-## modules
-modules <- data.frame(
-  moduleNames = c("DrainModuleFC") # user provides vector of module names
+##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+## DrainModuleFC ####
+##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# table of same length as the number of layers in zDat @ t=0. 
+# must have a column for field capacity (fc)
+# must be named "DrainModuleFC_in.csv".
+DrainModuleFC_in <- data.frame(
+  depth = rep(1,num_layers), # depth of each increment
+  fc = rep(0.1,num_layers) # field capacities across each increment
 )
-write.csv(modules,paste0(getwd(),"/moduleSlctIn_dat.csv"),row.names=FALSE)
+write.csv(DrainModuleFC_in,paste0(ioPath,"/DrainModuleFC_in.csv"),row.names=FALSE)
+
+
+
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ## Module X?? ####
@@ -63,6 +72,6 @@ write.csv(modules,paste0(getwd(),"/moduleSlctIn_dat.csv"),row.names=FALSE)
 
 
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-rm(sim_length,num_layers,t_in,z_in,modules)
+rm(sim_length,num_layers,t_in,z_in,DrainModuleFC_in)
 
 
