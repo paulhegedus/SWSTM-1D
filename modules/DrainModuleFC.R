@@ -93,16 +93,6 @@ DrainModuleFC <- R6Class(
       num_layers <- length(self$soilModData$soilProfile$soilLayers)
       self$soilModData$tDat$deepPerc[t] <- 
         self$soilModData$soilProfile$soilLayers[[num_layers]]$wBot
-      
-      # make zDat for time step from soil layers
-      zDat_append <- do.call(rbind.data.frame,
-                             self$soilModData$soilProfile$soilLayers %>%
-                               lapply(as.data.frame))
-      zDat_append$time <- t
-      
-      # save in outputs folder
-      self$soilModData$zDat <- bind_rows(self$soilModData$zDat,
-                                         zDat_append)
     }
   ),
   private = list(
@@ -121,6 +111,70 @@ DrainModuleFC <- R6Class(
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #### DrainModuleFC Outputter ####
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+DrainModuleFC_OP <- R6Class(
+  "DrainModuleFC_OP",
+  public = list(
+    soilModData = NULL,
+
+    initialize = function(soilModData){
+      stopifnot(
+        # check if data structures exist
+        exists("tDat",soilModData),
+        exists("zDat",soilModData),
+        exists("ioPath",soilModData)
+      ) 
+      self$soilModData <- soilModData
+      
+      # make directory(s) if needed 
+      owd <- paste0(self$soilModData$ioPath,"/outputs/DrainModuleFC") # outputs working directory for module
+      if(!file.exists(owd)){ 
+        dir.create(owd)
+        dir.create(paste0(owd,"/outT"))
+      }
+    },
+    # save module specific data at t step
+    zSave_t = function(t){
+      
+    },
+    # plot module specific data at t step 
+    zPlot_t = function(t){
+      
+    },
+    # plot module specific data at end of sim
+    tPlot_T = function(){
+      private$plot_dpXt()
+    } 
+  ),
+  private = list(
+    plot_dpXt = function(){
+      stopifnot(any(grepl("deepPerc",names(self$tDat))))
+      pd <- self$tDat
+      ymax <- RoundTo(max(pd$deepPerc),1,ceiling)
+      ystep <- -(ymax-0)/10
+      xstep <- (max(pd$time)-0)/10
+      
+      p <- ggplot(pd,
+                  aes(x=time,
+                      y=deepPerc)) +
+        geom_bar(stat="identity",
+                 color="white",
+                 fill="darkblue") +
+        scale_y_reverse(limits=c(ymax,0),
+                        labels=seq(ymax,0,ystep),
+                        breaks=seq(ymax,0,ystep)) +
+        scale_x_continuous(position = "top",
+                           limits=c(0.5,max(pd$time)+0.5),
+                           breaks = seq(1,max(pd$time),xstep)) +
+        labs(y="Deep Percolation",x="Time Step") +
+        theme_classic() 
+      ## TODO: add in depth & time units
+      #print(p)
+      ggsave(p,paste0(self$soilModData$ioPath,"/outputs/DrainModuleFC/outT/dpXt.png") ,
+             device = "png",scale = 1,width = 5, height = 7.5, units = "in")
+    }
+  )
+)
+
 
 
 
