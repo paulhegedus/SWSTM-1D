@@ -8,7 +8,10 @@
 ## Classes and functions for the 1D water and solute transort model. 
 ## First loads packages and functions for swstm1d
 ## Then checks model space for folders called 'modules' and 'inputs'.
-## Next, sources all of the R6 classes not specific to modules
+## Next, sources all of the R6 classes not specific to modules.
+
+## The Outputter class generator makes a outputter object that saves
+## data. Plot output will be generated later.
 
 ## Notes:
 ## 
@@ -48,10 +51,10 @@ SWSTM1D <- R6Class(
     soilModListOP = NULL,  
     swstm1d_op = NULL, 
     
-    initialize = function(modPath, ioPath, modsIn) {
-      tDat <- fread(paste0(ioPath, "/inputs/tIn_dat.csv")) %>%
+    initialize = function(modPath, ioPath, tInName, zInName, modsIn) {
+      tDat <- fread(paste0(ioPath, "/inputs/",tInName,".csv")) %>%
         as.data.frame()
-      zDat <- fread(paste0(ioPath, "/inputs/zIn_dat.csv")) %>%
+      zDat <- fread(paste0(ioPath, "/inputs/",zInName,".csv")) %>%
         as.data.frame()
       # 1) SoilModData class object has to be initialized first
       self$soilModData <- SoilModData$new(
@@ -228,7 +231,8 @@ SoilProfile <- R6Class(
   ) 
 ) 
 
-# OutPutter Class Generator ---------------------------
+# File OutPutter Class Generator ---------------------------
+## Outputter that 
 SWSTM1D_OP <- R6Class(
   "SWSTM1D_OP",
   public = list(
@@ -255,11 +259,7 @@ SWSTM1D_OP <- R6Class(
              paste0(self$soilModData$ioPath, "/outputs/zOut/ZxT/zDat_t", t, ".csv"))
     },
     
-    # Add plots for z data at each timestep that don't depend on module here
-    Zplot_t = function(t) {
-      private$.Plot_VWCxZ(t)
-      
-    },
+    
     
     # Need to save time level data after simulation ends
     Tsaves = function() {
@@ -294,87 +294,6 @@ SWSTM1D_OP <- R6Class(
           }
         }
       }
-    },
-    
-    # Plot vwc by depth for specified timestep 
-    ## TODO: add in depth units
-    .Plot_VWCxZ = function(t) {
-      owd <- paste0(self$soilModData$ioPath, "/outputs/zOut/VWCxT") 
-      if (!file.exists(owd)) { 
-        dir.create(owd)
-      }
-      stopifnot(
-        any(grepl("vwc", names(self$soilModData$zDat)))
-      )
-      pd  <- do.call(rbind.data.frame,
-                     lapply(self$soilModData$soilProfile$soilLayers,
-                            as.data.frame))
-      for (i in 1:nrow(pd)) {
-        pd$z_labels[i] <- 
-          ifelse(
-            i == 1,
-            paste0("0 - ", pd$z[i]),
-            paste0(pd$z[i-1], " - ", pd$z[i])
-          )
-      }
-      pd$z_labels <- as.factor(pd$z_labels) %>%
-        fct_rev()
-      p <- ggplot(pd, aes(x = z_labels, y = vwc)) +
-        geom_bar(stat = "identity",
-                 color = "darkblue",
-                 fill = "darkblue") +
-        scale_y_continuous(limits = c(0, 1), 
-                           breaks = seq(0, 1, 0.1)) +
-        labs(y = "Volumetric Water Content", x = "Depth") +
-        coord_flip() + 
-        theme_classic() +
-        ggtitle(paste0("Time: ", t))
-      ggsave(filename = paste0(self$soilModData$ioPath, 
-                               "/outputs/zOut/VWCxT/VWCxZ_t", 
-                               t, 
-                               ".png"),
-             plot = p,
-             device = "png",
-             scale = 1,
-             width = 5, 
-             height = 7.5, 
-             units = "in")
-      #print(p)
-    },
-    
-    # plot precipitation by time 
-    ## TODO: add in depth & time units
-    .Plot_PxT = function() {
-      stopifnot(
-        any(grepl("prec", names(self$soilModData$tDat)))
-      )
-      pd <- self$soilModData$tDat
-      ymax <- RoundTo(max(pd$prec), 1, ceiling)
-      ystep <- - (ymax - 0) / 10
-      xstep <- (max(pd$time) - 0) / 10
-      
-      p <- ggplot(pd, aes(x = time, y = prec)) +
-        geom_bar(stat = "identity",
-                 color = "white",
-                 fill = "blue") +
-        scale_y_reverse(limits = c(ymax, 0),
-                        labels = seq(ymax, 0, ystep),
-                        breaks = seq(ymax, 0, ystep)) +
-        scale_x_continuous(position = "top",
-                           limits = c(0.5, max(pd$time) + 0.5),
-                           breaks = seq(1, max(pd$time), xstep)) +
-        labs(y = "Precipitation", x = "Time Step") +
-        theme_classic() 
-      
-      ggsave(filename = paste0(self$soilModData$ioPath, 
-                               "/outputs/tOut/PxT_T.png"),
-             plot = p,
-             device = "png",
-             scale = 1,
-             width = 5, 
-             height = 7.5, 
-             units = "in")
-      #print(p)
     }
   )
 )

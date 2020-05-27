@@ -20,6 +20,8 @@ modPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/swstm1D/dev/Code
 # Need to provide the path to location of 'inputs' folder; 
 # outputs put here (this does not need to be same as model)
 ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/swstm1D/dev/Test"
+tInName <- "tIn_dat"
+zInName <- "zIn_dat"
 # Need to provide the string of module names
 modsIn <- c("DrainModuleFC") 
 # Source Code ---------------------------
@@ -30,6 +32,8 @@ CheckForModelReqs(modPath,ioPath)
 swstm1d <- SWSTM1D$new(
   modPath = modPath,
   ioPath = ioPath,
+  tInName = tInName,
+  zInName = zInName,
   modsIn = modsIn
 )
 # SetUp Model ---------------------------
