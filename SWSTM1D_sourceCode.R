@@ -48,13 +48,13 @@ SWSTM1D <- R6Class(
   public = list(
     soilModData = NULL,  
     soilModList = NULL,  
-    soilModListOP = NULL,  
+    opList = NULL,  
     swstm1d_op = NULL, 
     
-    initialize = function(modPath, ioPath, tInName, zInName, modsIn) {
-      tDat <- fread(paste0(ioPath, "/inputs/",tInName,".csv")) %>%
+    initialize = function(modPath, ioPath, tInName, zInName, mods_select, op_select) {
+      tDat <- fread(paste0(ioPath, "/inputs/", tInName, ".csv")) %>%
         as.data.frame()
-      zDat <- fread(paste0(ioPath, "/inputs/",zInName,".csv")) %>%
+      zDat <- fread(paste0(ioPath, "/inputs/", zInName, ".csv")) %>%
         as.data.frame()
       # 1) SoilModData class object has to be initialized first
       self$soilModData <- SoilModData$new(
@@ -65,16 +65,20 @@ SWSTM1D <- R6Class(
       )
       # 2) Lists for modules & outputters have to be generated from user input
       stopifnot(
-        # Cannot have no modules selected
-        !is.null(modsIn) 
+        # Cannot have no modules selected (you CAN have no outputters selected, sux 4 u)
+        !is.null(mods_select) 
       )
-      if (!all(is.character(modsIn))) {
-        modsIn <-  as.character(modsIn) 
+      if (!all(is.character(mods_select))) {
+        mods_select <-  as.character(mods_select) 
       }
-      self$soilModList <- as.list(modsIn) %>% 
-        `names<-`(modsIn) 
-      self$soilModListOP <- as.list(paste0(modsIn, "_OP")) %>% 
-        `names<-`(paste0(modsIn, "_OP")) 
+      if (!all(is.character(op_select))) {
+        op_select <-  as.character(op_select) 
+      }
+      
+      self$soilModList <- as.list(mods_select) %>% 
+        `names<-`(mods_select) 
+      self$opList <- as.list(op_select) %>% 
+        `names<-`(op_select) 
     }, 
     
     SetUp = function() {
@@ -86,10 +90,9 @@ SWSTM1D <- R6Class(
         private$.LoadModules 
       )
       # 3) Same process for the outputters, but no need to source again
-      self$soilModListOP <- lapply(
-        self$soilModListOP,  
-        private$.LoadModules,  # Loads module outputters
-        FALSE 
+      self$opList <- lapply(
+        self$opList,  
+        private$.LoadOutputters
       )
       # 4) SoilModData structures have to be updated based on loaded modules
       lapply(
@@ -108,7 +111,7 @@ SWSTM1D <- R6Class(
         mapply(
           private$.RunModules,  
           self$soilModList, 
-          self$soilModListOP,  
+          self$opList,  
           MoreArgs = list(t = t) 
         )
         # Uses general outputter to save depth level data for timesteps
@@ -126,7 +129,7 @@ SWSTM1D <- R6Class(
       self$swstm1d_op$Tplots() 
       # Make module specific plots across simulation length (T)
       lapply(
-        self$soilModListOP, 
+        self$opList, 
         private$.TPlots 
       ) %>% 
         invisible()
@@ -134,15 +137,20 @@ SWSTM1D <- R6Class(
   ), 
   
   private = list(
-    .LoadModules = function(module, source_module = TRUE) {
-      # 1) Have to source first time running per session
-      if (source_module) {
-        source(paste0(self$soilModData$modPath, "/modules/", module, ".R"))
-      }
+    .LoadModules = function(module) {
+      # 1) Have to source file
+      source(paste0(self$soilModData$modPath, "/modules/", module, ".R"))
       # 2) Have to initialize module based on SoilModData
       module <- eval(parse(text = paste0(module, "$new(self$soilModData)")))
       return(module)
     },  
+    # Different function purely for clarity, otherwise module/outputter would be arg
+    .LoadOutputters = function(outputter) {
+      # 1) Have to source file
+      source(paste0(self$soilModData$modPath, "/outputters/", outputter, ".R"))
+      # 2) Have to initialize outputter based on SoilModData
+      outputter <- eval(parse(text = paste0(outputter, "$new(self$soilModData)")))
+    },
     
     .SetUpModules = function(module) {
       module$SetUp() # module specific setup
@@ -152,7 +160,6 @@ SWSTM1D <- R6Class(
       module$Execute(t) 
       module$Update(t) 
       module_op$Zsave_t(t) 
-      module_op$Zplot_t(t) 
     }, 
     
     .TPlots = function(module_op) {
@@ -268,10 +275,10 @@ SWSTM1D_OP <- R6Class(
     },
     
     # Add plots for t level data across sim that aren't module specific here
-    Tplots = function() {
-      private$.Plot_PxT()
-      
-    }
+    # Tplots = function() {
+    #   private$.Plot_PxT()
+    #   
+    # }
   ),
   
   private = list(

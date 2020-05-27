@@ -23,7 +23,10 @@ ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/swstm1D/dev/Test"
 tInName <- "tIn_dat"
 zInName <- "zIn_dat"
 # Need to provide the string of module names
-modsIn <- c("DrainModuleFC") 
+mods_select <- c("DrainModuleFC") 
+# Need to provide sting of outputter names
+op_select <- c("DrainModuleFC_OP")
+
 # Source Code ---------------------------
 source(paste0(modPath, "/SWSTM1D_sourceCode.R"))
 # Check Model Dependencies ---------------------------
@@ -34,7 +37,8 @@ swstm1d <- SWSTM1D$new(
   ioPath = ioPath,
   tInName = tInName,
   zInName = zInName,
-  modsIn = modsIn
+  mods_select = mods_select,
+  op_select = op_select
 )
 # SetUp Model ---------------------------
 swstm1d$SetUp() 
