@@ -24,13 +24,17 @@ tInName <- "tIn_dat"
 zInName <- "zIn_dat"
 # Need to provide the string of module names
 mods_select <- c("DrainModuleFC") 
+mods_data_loc <- c("DrainModuleFC_in")
 # Need to provide sting of outputter names
-op_select <- c("DrainModuleFC_OP")
+op_select <- c("SWSTM1D_OP",
+               "DrainModuleFC_OP") # else NULL
 
 # Source Code ---------------------------
 source(paste0(modPath, "/SWSTM1D_sourceCode.R"))
+
 # Check Model Dependencies ---------------------------
 CheckForModelReqs(modPath,ioPath)
+
 # Initialize Model ---------------------------
 swstm1d <- SWSTM1D$new(
   modPath = modPath,
@@ -38,11 +42,15 @@ swstm1d <- SWSTM1D$new(
   tInName = tInName,
   zInName = zInName,
   mods_select = mods_select,
-  op_select = op_select
+  op_select = op_select,
+  mods_data_loc = mods_data_loc
 )
+
 # SetUp Model ---------------------------
 swstm1d$SetUp() 
+
 # Execute Model Simulation ---------------------------
 swstm1d$Execute() 
+
 # Save Model Simulation Outputs ---------------------------
-swstm1d$Output() 
+#swstm1d$Output() # not needed except maybe for plotting options later?

@@ -17,25 +17,29 @@ DrainModuleFC <- R6Class(
   classname="DrainModuleFC",
   public = list(
     soilModData = NULL, 
+    modDataLoc = NULL,
 
-    initialize = function(soilModData) {
+    initialize = function(soilModData, modDataLoc) {
       stopifnot(
         exists("tDat", soilModData),
         exists("zDat", soilModData),
         exists("ioPath", soilModData),
         file.exists(paste0(soilModData$ioPath, 
-                           "/inputs/DrainModuleFC_in.csv")),
+                           "/inputs/", 
+                           modDataLoc,".csv")),
         !is.null(soilModData$zDat$vwc),
         is.numeric(soilModData$zDat$vwc), 
         all(soilModData$zDat$vwc > 0 & soilModData$zDat$vwc < 1)
       ) 
       self$soilModData <- soilModData
+      self$modDataLoc <- modDataLoc
     },
     
     SetUp = function() {
       # 1) Modules specific data must be in folder named 'inputs'
       dfcIn <- fread(paste0(self$soilModData$ioPath, 
-                            "/inputs/DrainModuleFC_in.csv")) %>%
+                            "/inputs/", 
+                            self$modDataLoc,".csv")) %>%
         as.data.frame()
       stopifnot(
         is.data.frame(dfcIn),
