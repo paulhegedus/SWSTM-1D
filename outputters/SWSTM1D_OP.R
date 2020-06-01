@@ -27,23 +27,32 @@ SWSTM1D_OP <- R6Class(
         exists("ioPath", soilModData)
       ) 
       self$soilModData <- soilModData
+      # Write initial z and t level info & open connection
+      browser()
+      
+      zDat <- do.call(
+        rbind.data.frame,
+        lapply(self$soilModData$soilProfile$soilLayers, as.data.frame)
+      )
+      zDat$time <- 0
+      fwrite(zDat, paste0(self$soilModData$ioPath, "/outputs/zDat.csv"))
+      
+      tDat <- self$soilModData$tDat[1, ]
+      tDat[1, ] <- NA
+      tDat[1, "time"] <- 0
+      fwrite(tDat, paste0(self$soilModData$ioPath, "/outputs/tDat.csv"))
+      
       # TODO:
       # open file connections
       # write headers for files
     },
     write_z = function(t) {
       # TODO: write to open file connection & write all rows of z dat for time t
-      zDat_append <- do.call(rbind.data.frame,
-                             lapply(self$soilModData$soilProfile$soilLayers,
-                                    as.data.frame))
-      zDat_append$time <- t
-      fwrite(zDat_append, 
-             paste0(self$soilModData$ioPath, "/outputs/zOut/ZxT/zDat_t", t, ".csv"))
+      
     },
     write_t = function() {
       # TODO: write to open file connection and write t row of t dat
-      fwrite(self$soilModData$tDat,
-             paste0(self$soilModData$ioPath, "/outputs/tOut/tDat_T.csv"))
+      
     }
   )
   #private = list()
