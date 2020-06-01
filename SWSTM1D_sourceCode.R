@@ -134,16 +134,16 @@ SWSTM1D <- R6Class(
       owd <- paste0(self$soilModData$ioPath, "/outputs") 
       if (!file.exists(owd)) { 
         dir.create(owd)
-        dir.create(paste0(owd, "/tOut"))
-        dir.create(paste0(owd, "/zOut"))
-      } else {
-        if (!file.exists(paste0(owd, "/tOut"))) { 
-          dir.create(paste0(owd, "/tOut"))
-        }
-        if (!file.exists(paste0(owd, "/zOut"))) { 
-          dir.create(paste0(owd, "/zOut"))
-        }
-      }
+        #dir.create(paste0(owd, "/tOut"))
+        #dir.create(paste0(owd, "/zOut"))
+       } # else {
+      #   if (!file.exists(paste0(owd, "/tOut"))) { 
+      #     dir.create(paste0(owd, "/tOut"))
+      #   }
+      #   if (!file.exists(paste0(owd, "/zOut"))) { 
+      #     dir.create(paste0(owd, "/zOut"))
+      #   }
+      # }
     },
     .LoadModules = function(module, modDataLoc) {
       # 1) Have to source file
