@@ -62,7 +62,7 @@ SWSTM1D <- R6Class(
       )
       # 2) Lists for modules & outputters have to be generated from user input
       stopifnot(
-        !is.null(mods_select)
+        !is.null(mods_select),
         !is.null(op_select)
       )
       if (!is.null(mods_data_loc)) {
@@ -87,6 +87,7 @@ SWSTM1D <- R6Class(
         `names<-`(op_select) 
     }, 
     SetUp = function() {
+      browser()
       # 1) The 'outputs' folder has to be created based on initial user inputs
       private$.MakeOutputsFolder()
       # 2) Modules have to be loaded and initialized from the 'modules' folder
@@ -148,20 +149,19 @@ SWSTM1D <- R6Class(
       # 1) Have to source file
       source(paste0(self$soilModData$modPath, "/modules/", module, ".R"))
       # 2) Have to initialize module based on SoilModData
-      module <- eval(parse(text = paste0(module, 
-                                         "$new(self$soilModData, ", 
-                                         modDataLoc,")")))
+      module <- eval(parse(
+        text = paste0(module, "$new(self$soilModData, modDataLoc)")))
       return(module)
     },  
+    .SetUpModules = function(module) {
+      module$SetUp() # module specific setup
+    },
     .LoadOutputters = function(outputter) {
       # 1) Have to source file
       source(paste0(self$soilModData$modPath, "/outputters/", outputter, ".R"))
       # 2) Have to initialize outputter based on SoilModData
       outputter <- eval(parse(text = paste0(outputter, "$new(self$soilModData)")))
       return(outputter)
-    },
-    .SetUpModules = function(module) {
-      module$SetUp() # module specific setup
     }, 
     .RunModules = function(module, t) { 
       module$Execute(t) 

@@ -28,7 +28,8 @@ SWSTM1D_OP <- R6Class(
       ) 
       self$soilModData <- soilModData
       # TODO:
-      # open file connections?
+      # open file connections
+      # write headers for files
     },
     write_z = function(t) {
       # TODO: write to open file connection & write all rows of z dat for time t

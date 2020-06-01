@@ -16,10 +16,10 @@
 
 # User Inputs ---------------------------
 # Need to provide the path to model files location (where 'modules' is)
-modPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/swstm1D/dev/Code"
+modPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
 # Need to provide the path to location of 'inputs' folder; 
 # outputs put here (this does not need to be same as model)
-ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/swstm1D/dev/Test"
+ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/Test"
 tInName <- "tIn_dat"
 zInName <- "zIn_dat"
 # Need to provide the string of module names
@@ -32,7 +32,7 @@ op_select <- c("SWSTM1D_OP",
 # Source Code ---------------------------
 source(paste0(modPath, "/SWSTM1D_sourceCode.R"))
 
-# Check Model Dependencies ---------------------------
+# Check Model Requirements/Inputs ---------------------------
 CheckForModelReqs(modPath,ioPath)
 
 # Initialize Model ---------------------------
