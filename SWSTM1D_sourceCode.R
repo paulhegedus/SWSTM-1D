@@ -77,7 +77,7 @@ SWSTM1D <- R6Class(
         op_select <-  as.character(op_select) 
       }
       if (!all(is.character(mods_data_loc))) {
-        mods_data_loc <-  as.character(mods_data_loc) 
+        mods_data_loc <- as.character(mods_data_loc) 
       }
       self$soilModList <- as.list(mods_select) %>% 
         `names<-`(mods_select) 
@@ -95,15 +95,15 @@ SWSTM1D <- R6Class(
         self$soilModList,
         self$modsDataLoc
       )
-      # 3) Same process for the outputters
-      self$opList <- lapply(
-        self$opList,  
-        private$.LoadOutputters
-      )
-      # 4) SoilModData structures have to be updated based on loaded modules
+      # 3) SoilModData structures have to be updated based on loaded modules
       lapply(
         self$soilModList,  
         private$.SetUpModules 
+      )
+      # 4) Outputters loaded after modules built
+      self$opList <- lapply(
+        self$opList,  
+        private$.LoadOutputters
       )
       # 5) SoilProfile made after the SoilModData object is modified 
       self$soilModData$BuildSoilProfile()
