@@ -46,8 +46,12 @@ SWSTM1D_OP <- R6Class(
       tDat[1, "time"] <- 0
       fwrite(tDat, paste0(self$soilModData$ioPath, "/outputs/tDat.csv"))
       
-      self$zCon <- paste0(self$soilModData$ioPath, "/outputs/zDat.csv")
-      self$tCon <- paste0(self$soilModData$ioPath, "/outputs/tDat.csv")
+      self$zCon <- file(description = paste0(self$soilModData$ioPath, 
+                                             "/outputs/zDat.csv"),
+                        open = "a")
+      self$tCon <- file(description = paste0(self$soilModData$ioPath, 
+                                             "/outputs/tDat.csv"),
+                        open = "a")
     },
     write_z = function(t) {
       op <- ifelse(t > self$ints[1],
