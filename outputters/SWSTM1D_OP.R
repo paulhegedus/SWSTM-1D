@@ -1,16 +1,16 @@
 ## Title: SWSTM1D_OP Outputter
 ## 
 ## Interface/Abstraction: This object follows the "outputters" 
-## interface consisting of the methods; write_z and write_t
-## write_z: write depth (z) level data at each timestep (t)
-## write_t: writes t level data at each timestep (t)
+## interface consisting of the methods; Write_z and Write_t
+## Write_z: write depth (z) level data at each timestep (t)
+## Write_t: writes t level data at each timestep (t)
 ##
 ## Description: This class is the general outputter for the SWSTM-1D model.
 ## The Outputter class generator makes a outputter object that saves
 ## data. Plot output will be generated later.
 
 ## Inputs: soilModData
-## Methods: write_z, write_t
+## Methods: Write_z, Write_t
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # File OutPutter Class Generator ---------------------------
@@ -53,7 +53,7 @@ SWSTM1D_OP <- R6Class(
                                              "/outputs/tDat.csv"),
                         open = "a")
     },
-    write_z = function(t) {
+    Write_z = function(t) {
       op <- ifelse(t > self$ints[1],
                    t / self$ints[1],
                    self$ints[1] / t)
@@ -66,16 +66,19 @@ SWSTM1D_OP <- R6Class(
         write.table(zDat, self$zCon, row.names = FALSE)
       }
     },
-    write_t = function(t) {
+    Write_t = function(t) {
       op <- ifelse(t > self$ints[2],
                    t / self$ints[2],
                    self$ints[2] / t)
       if (op == as.integer(op)) {
         tDat <- self$soilModData$tDat[t, ] %>% 
           as.data.frame()
-        
         write.table(tDat, self$tCon, row.names = FALSE)
       }
+    },
+    CloseCon = function() {
+      close(self$zCon)
+      close(self$tCon)
     }
   )
   #private = list()

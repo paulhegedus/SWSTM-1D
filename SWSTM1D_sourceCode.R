@@ -123,7 +123,7 @@ SWSTM1D <- R6Class(
       }
     }, 
     Output = function() {
-      invisible()
+      lapply(self$opList, private$.CloseConnections)
     }
   ), 
   
@@ -160,10 +160,13 @@ SWSTM1D <- R6Class(
       module$Update(t) 
     },
     .RunZToutputters = function(module_op, t) { 
-      module_op$write_z(t) 
+      module_op$Write_z(t) 
     },
     .RunToutputters = function(module_op, t) { 
-      module_op$write_t(t) 
+      module_op$Write_t(t) 
+    },
+    .CloseConnections = function(outputter) {
+      outputter$CloseCon()
     }
   )
 )

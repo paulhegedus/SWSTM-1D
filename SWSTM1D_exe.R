@@ -64,6 +64,7 @@ swstm1d$SetUp()
 swstm1d$Execute() 
 
 # Save Model Simulation Outputs ---------------------------
-proc.time() - pc
+swstm1d$Output() %>%
+  invisible()
 
-swstm1d$Output() # 
+proc.time() - pc
