@@ -46,14 +46,36 @@ DrainModuleFC_OP <- R6Class(
       op <- ifelse(t > self$ints[1],
                    t / self$ints[1],
                    self$ints[1] / t)
-      if (op == as.integer(op)) { }
+      if (op == as.integer(op)) { 
+        
+        
+        
+        
+        
+        # write.table(         , 
+        #             self$zCon, 
+        #             row.names = FALSE, 
+        #             col.names = FALSE, 
+        #             sep = ",")
+      }
     },
     # For saving module specific t data after sim
     Write_t = function(t) {
       op <- ifelse(t > self$ints[2],
                    t / self$ints[2],
                    self$ints[2] / t)
-      if (op == as.integer(op)) { }
+      if (op == as.integer(op)) { 
+        
+        
+        
+        
+        
+        # write.table(         , 
+        #             self$tCon, 
+        #             row.names = FALSE, 
+        #             col.names = FALSE, 
+        #             sep = ",")  
+      }
     },
     CloseCon = function() {
       #close(self$zCon)

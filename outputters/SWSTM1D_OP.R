@@ -63,7 +63,11 @@ SWSTM1D_OP <- R6Class(
           lapply(self$soilModData$soilProfile$soilLayers, as.data.frame)
         )
         zDat$time <- t
-        write.table(zDat, self$zCon, row.names = FALSE)
+        write.table(zDat, 
+                    self$zCon, 
+                    row.names = FALSE, 
+                    col.names = FALSE, 
+                    sep = ",")
       }
     },
     Write_t = function(t) {
@@ -73,7 +77,11 @@ SWSTM1D_OP <- R6Class(
       if (op == as.integer(op)) {
         tDat <- self$soilModData$tDat[t, ] %>% 
           as.data.frame()
-        write.table(tDat, self$tCon, row.names = FALSE)
+        write.table(tDat, 
+                    self$tCon, 
+                    row.names = FALSE, 
+                    col.names = FALSE, 
+                    sep = ",")
       }
     },
     CloseCon = function() {
