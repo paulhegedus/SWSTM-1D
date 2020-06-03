@@ -47,8 +47,16 @@ SWSTM1D <- R6Class(
     soilModList = NULL,  
     opList = NULL,  
     modsDataLoc = NULL,
-
-    initialize = function(modPath, ioPath, tInName, zInName, mods_select, op_select, mods_data_loc) {
+    opInts = NULL,  
+    
+    initialize = function(modPath, 
+                          ioPath, 
+                          tInName, 
+                          zInName, 
+                          mods_select, 
+                          op_select, 
+                          mods_data_loc,
+                          op_ints) {
       tDat <- fread(paste0(ioPath, "/inputs/", tInName, ".csv")) %>%
         as.data.frame()
       zDat <- fread(paste0(ioPath, "/inputs/", zInName, ".csv")) %>%
@@ -85,9 +93,9 @@ SWSTM1D <- R6Class(
         `names<-`(mods_data_loc) 
       self$opList <- as.list(op_select) %>% 
         `names<-`(op_select) 
+      self$opInts <- op_ints
     }, 
     SetUp = function() {
-      browser()
       # 1) The 'outputs' folder has to be created based on initial user inputs
       private$.MakeOutputsFolder()
       # 2) Modules have to be loaded and initialized from the 'modules' folder
@@ -97,36 +105,26 @@ SWSTM1D <- R6Class(
         self$modsDataLoc
       )
       # 3) SoilModData structures have to be updated based on loaded modules
-      lapply(
-        self$soilModList,  
-        private$.SetUpModules 
-      )
-      # 4) Outputters loaded after modules built
-      self$opList <- lapply(
-        self$opList,  
-        private$.LoadOutputters
-      )
-      # 5) SoilProfile made after the SoilModData object is modified 
+      lapply(self$soilModList, private$.SetUpModules)
+      # 4) SoilProfile made after the SoilModData object is modified 
       self$soilModData$BuildSoilProfile()
-      # 6) The initial soil profile at t=0 needs to be saved
-      lapply(self$opList,
-             private$.RunZToutputters,
-             0)
+      # 5) Outputters loaded after modules built
+      self$opList <- mapply(
+        private$.LoadOutputters,
+        self$opList, 
+        self$opInts
+      )
     }, 
     Execute = function() {
       for (t in 1:nrow(self$soilModData$tDat)) {
-        lapply(self$soilModList,
-               private$.RunModules,
-               t)
-        lapply(self$opList,
-               private$.RunZToutputters,
-               t)
-        lapply(self$opList,
-               private$.RunToutputters,
-               t)
+        lapply(self$soilModList, private$.RunModules, t)
+        lapply(self$opList, private$.RunZToutputters, t)
+        lapply(self$opList, private$.RunToutputters, t)
       }
     }, 
-    Output = function() {}
+    Output = function() {
+      invisible()
+    }
   ), 
   
   private = list(
@@ -134,33 +132,27 @@ SWSTM1D <- R6Class(
       owd <- paste0(self$soilModData$ioPath, "/outputs") 
       if (!file.exists(owd)) { 
         dir.create(owd)
-        #dir.create(paste0(owd, "/tOut"))
-        #dir.create(paste0(owd, "/zOut"))
-       } # else {
-      #   if (!file.exists(paste0(owd, "/tOut"))) { 
-      #     dir.create(paste0(owd, "/tOut"))
-      #   }
-      #   if (!file.exists(paste0(owd, "/zOut"))) { 
-      #     dir.create(paste0(owd, "/zOut"))
-      #   }
-      # }
+      } 
     },
     .LoadModules = function(module, modDataLoc) {
       # 1) Have to source file
       source(paste0(self$soilModData$modPath, "/modules/", module, ".R"))
       # 2) Have to initialize module based on SoilModData
-      module <- eval(parse(
-        text = paste0(module, "$new(self$soilModData, modDataLoc)")))
+      module <- eval(
+        parse(
+          text = paste0(module, "$new(self$soilModData, modDataLoc)")
+        )
+      )
       return(module)
     },  
     .SetUpModules = function(module) {
       module$SetUp() # module specific setup
     },
-    .LoadOutputters = function(outputter) {
+    .LoadOutputters = function(outputter, ints) {
       # 1) Have to source file
       source(paste0(self$soilModData$modPath, "/outputters/", outputter, ".R"))
       # 2) Have to initialize outputter based on SoilModData
-      outputter <- eval(parse(text = paste0(outputter, "$new(self$soilModData)")))
+      outputter <- eval(parse(text = paste0(outputter, "$new(self$soilModData, ints)")))
       return(outputter)
     }, 
     .RunModules = function(module, t) { 

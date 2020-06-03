@@ -20,14 +20,22 @@ modPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWST
 # Need to provide the path to location of 'inputs' folder; 
 # outputs put here (this does not need to be same as model)
 ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/Test"
+# Filename of t or z inputs and the time step intervals to output data
 tInName <- "tIn_dat"
 zInName <- "zIn_dat"
 # Need to provide the string of module names
 mods_select <- c("DrainModuleFC") 
 mods_data_loc <- c("DrainModuleFC_in")
-# Need to provide sting of outputter names
+# Need to provide string of outputter names
 op_select <- c("SWSTM1D_OP",
-               "DrainModuleFC_OP") # else NULL
+               "DrainModuleFC_OP") # else NULL for no outputters
+# Intervals to output from each outputter. Must be same
+# order as 'op_select'. First element is for 'z' outputs,
+# second element is for 't' outputs.
+op_ints <- list(
+  c(1,1), # SWSTM1D_OP
+  c(1,1) # DrainModuleFC_OP
+)
 
 # Source Code ---------------------------
 source(paste0(modPath, "/SWSTM1D_sourceCode.R"))
@@ -36,6 +44,8 @@ source(paste0(modPath, "/SWSTM1D_sourceCode.R"))
 CheckForModelReqs(modPath,ioPath)
 
 # Initialize Model ---------------------------
+pc <- proc.time()
+
 swstm1d <- SWSTM1D$new(
   modPath = modPath,
   ioPath = ioPath,
@@ -43,7 +53,8 @@ swstm1d <- SWSTM1D$new(
   zInName = zInName,
   mods_select = mods_select,
   op_select = op_select,
-  mods_data_loc = mods_data_loc
+  mods_data_loc = mods_data_loc,
+  op_ints = op_ints
 )
 
 # SetUp Model ---------------------------
@@ -53,4 +64,6 @@ swstm1d$SetUp()
 swstm1d$Execute() 
 
 # Save Model Simulation Outputs ---------------------------
-#swstm1d$Output() # not needed except maybe for plotting options later?
+proc.time() - pc
+
+swstm1d$Output() # 
