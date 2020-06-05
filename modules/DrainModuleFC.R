@@ -11,7 +11,7 @@
 ## Inputs: soilModData (R6 class - args: soilProfile, tDat,zDat)
 ## Methods: SetUp, Execute, Update, plotGen
 ##
-##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
 # DrainModuleFC Class Generator ---------------------------
 DrainModuleFC <- R6Class(
   classname="DrainModuleFC",
@@ -59,8 +59,10 @@ DrainModuleFC <- R6Class(
       # Get the number of soil layers for shorter pointer
       num_layers <- length(self$soilModData$soilProfile$soilLayers)
       if (!is.null(self$soilModData$tDat$prec)) { 
+        # Checked if the user added a precip column. If not null, use precip.
         self$soilModData$soilProfile$soilLayers[[1]]$wTop <- 
-          self$soilModData$tDat$prec[t]
+          self$soilModData$tDat$prec[t] / 
+          self$soilModData$soilProfile$soilLayers[[1]]$depth
       } # Else not needed b/c default set to 0
       for (i in 1:num_layers) {
         self$soilModData$soilProfile$soilLayers[[i]] <- 
@@ -84,7 +86,7 @@ DrainModuleFC <- R6Class(
     .DrainFunFC = function(soilLayer) {
       soilLayer$vwc <- soilLayer$vwc + soilLayer$wTop
       if (soilLayer$vwc > soilLayer$fc) {
-        soilLayer$wBot <- soilLayer$vwc - soilLayer$fc * soilLayer$depth
+        soilLayer$wBot <- (soilLayer$vwc - soilLayer$fc) * soilLayer$depth
         soilLayer$vwc <- soilLayer$vwc - soilLayer$wBot
       } # Else not needed b/c default set to 0 
       return(soilLayer)
