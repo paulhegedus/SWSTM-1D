@@ -19,13 +19,17 @@
 modPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
 # Need to provide the path to location of 'inputs' folder; 
 # outputs put here (this does not need to be same as model)
-ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/Test"
+ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
 # Filename of t or z inputs and the time step intervals to output data
 tInName <- "tIn_dat"
 zInName <- "zIn_dat"
 # Need to provide the string of module names
-mods_select <- c("DrainModuleFC") 
-mods_data_loc <- c("DrainModuleFC_in")
+mods_select <- c("DrainModuleFC",
+                 "RootModule_UserSupplied",
+                 "TranspModule_Uniform") # TranspModule_UserSupplied
+mods_data_loc <- c("DrainModuleFC_in",
+                   "RootModule_UserSupplied_in",
+                   "TranspModule_in") # TranspModule_UserSupplied_in
 # Need to provide string of outputter names
 op_select <- c("SWSTM1D_OP",
                "DrainModuleFC_OP") # else NULL for no outputters
