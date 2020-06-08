@@ -206,7 +206,8 @@ SoilModData <- R6Class(
       self$modPath <- modPath
       self$ioPath <- ioPath
       
-      self$zDat$z <- private$.SumPrevNumFun(self$zDat$depth)
+      #self$zDat$z <- private$.SumPrevNumFun(self$zDat$depth)
+      self$zDat$z <- cumsum(self$zDat$depth)
     }, 
     
     BuildSoilProfile = function() {
@@ -215,16 +216,16 @@ SoilModData <- R6Class(
   ), 
   
   private = list(
-    .SumPrevNumFun = function(vec) {
-      stopifnot(
-        is.numeric(vec), 
-        length(vec) > 1
-      ) 
-      for (i in 2:length(vec)) { 
-        vec[i] <- vec[i] + vec[i-1]
-      }
-      return(vec)
-    }
+    # .SumPrevNumFun = function(vec) {
+    #   stopifnot(
+    #     is.numeric(vec), 
+    #     length(vec) > 1
+    #   ) 
+    #   for (i in 2:length(vec)) { 
+    #     vec[i] <- vec[i] + vec[i-1]
+    #   }
+    #   return(vec)
+    # }
   )
 )
 
