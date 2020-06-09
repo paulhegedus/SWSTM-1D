@@ -1,20 +1,21 @@
-## Title: RootModule_UserSupplied
+## Title: RootModule_Length
 ## 
 ## Interface/Abstraction: This object follows the "modules" 
 ## interface consisting of the methods;SetUp(), Execute(), Update()
 ##
 ## Description: This class is a root module where the user supplies the depth
-## of roots at each time step. In this module, the root depths are distributed
-## across each layer. Fractional root depths is permissable (i.e. 63.4 units 
-## etc.). The 64th layer of the soilProfile has a rootDepth of 0.4 units.
+## of roots at each time step. In this module, the root lengths are distributed
+## across each layer. Fractional root lengths are permissable (i.e. 63.4 units 
+## etc.). The 64th layer of the soilProfile has a rootDepth of 0.4 units. This
+## module calculates root length at each depth, not mass.
 ##
 ## Inputs: soilModData (R6 class - args: soilProfile, tDat,zDat)
 ## Methods: SetUp, Execute, Update, plotGen
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
 # DrainModuleFC Class Generator ---------------------------
-RootModule_UserSupplied <- R6Class(
-  classname="RootModule_UserSupplied",
+RootModule_Length <- R6Class(
+  classname="RootModule_Length",
   public = list(
     soilModData = NULL, 
     modDataLoc = NULL,
@@ -43,7 +44,7 @@ RootModule_UserSupplied <- R6Class(
         !is.null(dfcIn$rootDepth),
         is.numeric(dfcIn$rootDepth),
         nrow(dfcIn) == nrow(self$soilModData$tDat),
-        length(self$soilModData$soilProfile$soilLayers) < max(dfcIn$rootDepth) # FIX ME: change from length soilLayer to depth
+        max(self$soilModData$zDat$z) < max(dfcIn$rootDepth) 
       )
       # 2) Input data has to be modified
       self$soilModData$tDat$rootDepth <- dfcIn$rootDepth
