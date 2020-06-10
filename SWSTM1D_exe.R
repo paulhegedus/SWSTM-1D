@@ -27,10 +27,9 @@ zInName <- "zIn_dat"
 mods_select <- c("DrainModuleFC",
                  "RootModule_Dist", #  RootModule_Length
                  "TranspModule_PET_noLim") #  TranspModule_AET
-mods_data_loc <- c("DrainModuleFC_in",
+mods_data_loc <- list("DrainModuleFC_in",
                    "RootModule_root_depths",
-                   "TranspModule_ET",
-                   "TranspModule_wp") #  
+                   c("TranspModule_ET", "TranspModule_wp")) #  
 # Need to provide string of outputter names
 op_select <- c("SWSTM1D_OP",
                "DrainModuleFC_OP") 

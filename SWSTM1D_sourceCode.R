@@ -83,12 +83,10 @@ SWSTM1D <- R6Class(
       if (!all(is.character(op_select))) {
         op_select <-  as.character(op_select) 
       }
-      if (!all(is.character(mods_data_loc))) {
-        mods_data_loc <- as.character(mods_data_loc) 
-      }
+      mods_data_loc <- lapply(mods_data_loc, as.character) 
       self$soilModList <- as.list(mods_select) %>% 
         `names<-`(mods_select) 
-      self$modsDataLoc <- as.list(mods_data_loc) %>% 
+      self$modsDataLoc <- mods_data_loc %>% 
         `names<-`(mods_data_loc) 
       self$opList <- as.list(op_select) %>% 
         `names<-`(op_select) 

@@ -23,13 +23,15 @@ TranspModule_PET_lim <- R6Class(
         exists("tDat", soilModData),
         exists("zDat", soilModData),
         exists("ioPath", soilModData),
-        file.exists(paste0(soilModData$ioPath, 
-                           "/inputs/", 
-                           modDataLoc,".csv")),
         !is.null(soilModData$zDat$vwc),
         is.numeric(soilModData$zDat$vwc), 
         all(soilModData$zDat$vwc > 0 & soilModData$zDat$vwc < 1)
-      ) 
+      )
+      for (i in 1:length(modDataLoc)) {
+        stopifnot(
+          file.exists(paste0(soilModData$ioPath, "/inputs/", modDataLoc[i],".csv"))
+        )
+      }
       self$soilModData <- soilModData
       self$modDataLoc <- modDataLoc
     },
