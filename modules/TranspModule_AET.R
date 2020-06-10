@@ -25,11 +25,12 @@ TranspModule_AET <- R6Class(
         exists("ioPath", soilModData),
         !is.null(soilModData$zDat$vwc),
         is.numeric(soilModData$zDat$vwc), 
-        all(soilModData$zDat$vwc > 0 & soilModData$zDat$vwc < 1)
+        all(soilModData$zDat$vwc > 0 & soilModData$zDat$vwc < 1),
+        any(names(modDataLoc) == "ET") # Must have ET defined
       )
       for (i in 1:length(modDataLoc)) {
         stopifnot(
-          file.exists(paste0(soilModData$ioPath, "/inputs/", modDataLoc[i],".csv"))
+          file.exists(paste0(soilModData$ioPath, "/inputs/", modDataLoc[[i]],".csv"))
         )
       }
       self$soilModData <- soilModData
@@ -40,7 +41,7 @@ TranspModule_AET <- R6Class(
       # 1) Modules specific data must be in folder named 'inputs'
       dfcIn <- fread(paste0(self$soilModData$ioPath, 
                             "/inputs/", 
-                            self$modDataLoc,".csv")) %>%
+                            self$modDataLoc$ET,".csv")) %>%
         as.data.frame()
       stopifnot(
         is.data.frame(dfcIn),

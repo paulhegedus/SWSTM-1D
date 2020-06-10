@@ -23,14 +23,16 @@ ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM
 # Filename of t or z inputs and the time step intervals to output data
 tInName <- "tIn_dat"
 zInName <- "zIn_dat"
-# Need to provide the string of module names
+# Module names
 mods_select <- c("DrainModuleFC",
                  "RootModule_Dist", #  RootModule_Length
-                 "TranspModule_PET_noLim") #  TranspModule_AET
+                 "TranspModule_AET") #   TranspModule_PET_noLim
 mods_data_loc <- list("DrainModuleFC_in",
                    "RootModule_root_depths",
-                   c("TranspModule_ET", "TranspModule_wp")) #  
-# Need to provide string of outputter names
+                   list(ET = "TranspModule_ET", WP = "TranspModule_wp")) 
+                   # FIXME: MUST name ET or WP... 
+                   # OR must give ET first, WP second
+# Outputter names
 op_select <- c("SWSTM1D_OP",
                "DrainModuleFC_OP") 
 # TODO: Handle NULL for no outputters

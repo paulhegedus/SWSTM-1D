@@ -25,11 +25,13 @@ TranspModule_PET_noLim <- R6Class(
         exists("ioPath", soilModData),
         !is.null(soilModData$zDat$vwc),
         is.numeric(soilModData$zDat$vwc), 
-        all(soilModData$zDat$vwc > 0 & soilModData$zDat$vwc < 1)
+        all(soilModData$zDat$vwc > 0 & soilModData$zDat$vwc < 1),
+        any(names(modDataLoc) == "ET"), # Must have ET defined
+        any(names(modDataLoc) == "WP") # Must have WP defined
       )
       for (i in 1:length(modDataLoc)) {
         stopifnot(
-          file.exists(paste0(soilModData$ioPath, "/inputs/", modDataLoc[i],".csv"))
+          file.exists(paste0(soilModData$ioPath, "/inputs/", modDataLoc[[i]],".csv"))
         )
       }
       self$soilModData <- soilModData
@@ -38,15 +40,24 @@ TranspModule_PET_noLim <- R6Class(
     
     SetUp = function() {
       # 1) Modules specific data must be in folder named 'inputs'
-      dfcIn <- fread(paste0(self$soilModData$ioPath, 
-                            "/inputs/", 
-                            self$modDataLoc,".csv")) %>%
-        as.data.frame()
+      dfcIn <- rep(as.list(NA), length(self$modDataLoc)) %>%
+        `names<-`(names(self$modDataLoc))
+      for (i in 1:length(self$modDataLoc)) {
+        dfcIn[[i]] <- fread(paste0(self$soilModData$ioPath, 
+                                   "/inputs/", 
+                                   self$self$modDataLoc[[i]],".csv")) %>%
+          as.data.frame()
+      }
+      
       stopifnot(
-        is.data.frame(dfcIn),
-        !is.null(dfcIn$wp),
-        is.numeric(dfcIn$wp),
-        nrow(dfcIn) == nrow(self$soilModData$tDat),
+        is.data.frame(dfcIn$ET),
+        !is.null(dfcIn$ET$ET),
+        is.numeric(dfcIn$ET$ET),
+        nrow(dfcIn$ET) == nrow(self$soilModData$tDat),
+        is.data.frame(dfcIn$WP),
+        !is.null(dfcIn$WP$wp),
+        is.numeric(dfcIn$WP$wp),
+        nrow(dfcIn$WP) == nrow(self$soilModData$zDat),
         !is.null(self$soilModData$tDat$rootDepth)
       )
       # 2) Input data has to be modified
