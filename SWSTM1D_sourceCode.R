@@ -70,8 +70,7 @@ SWSTM1D <- R6Class(
       )
       # 2) Lists for modules & outputters have to be generated from user input
       stopifnot(
-        !is.null(mods_select),
-        !is.null(op_select)
+        !is.null(mods_select)
       )
       if (!is.null(mods_data_loc)) {
         stopifnot(
@@ -206,27 +205,15 @@ SoilModData <- R6Class(
       self$modPath <- modPath
       self$ioPath <- ioPath
       
-      #self$zDat$z <- private$.SumPrevNumFun(self$zDat$depth)
       self$zDat$z <- cumsum(self$zDat$depth)
     }, 
     
     BuildSoilProfile = function() {
       self$soilProfile <- SoilProfile$new(self$zDat)
     }
-  ), 
+  )#, 
   
-  private = list(
-    # .SumPrevNumFun = function(vec) {
-    #   stopifnot(
-    #     is.numeric(vec), 
-    #     length(vec) > 1
-    #   ) 
-    #   for (i in 2:length(vec)) { 
-    #     vec[i] <- vec[i] + vec[i-1]
-    #   }
-    #   return(vec)
-    # }
-  )
+  #private = list()
 )
 
 # SoilProfile Class Generator ---------------------------

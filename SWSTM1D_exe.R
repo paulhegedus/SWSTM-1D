@@ -25,14 +25,16 @@ tInName <- "tIn_dat"
 zInName <- "zIn_dat"
 # Need to provide the string of module names
 mods_select <- c("DrainModuleFC",
-                 "RootModule_UserSupplied",
-                 "TranspModule_Uniform") # TranspModule_UserSupplied
+                 "RootModule_Dist", #  RootModule_Length
+                 "TranspModule_PET_noLim") #  TranspModule_AET
 mods_data_loc <- c("DrainModuleFC_in",
-                   "RootModule_UserSupplied_in",
-                   "TranspModule_in") # TranspModule_UserSupplied_in
+                   "RootModule_root_depths",
+                   "TranspModule_ET",
+                   "TranspModule_wp") #  
 # Need to provide string of outputter names
 op_select <- c("SWSTM1D_OP",
-               "DrainModuleFC_OP") # else NULL for no outputters
+               "DrainModuleFC_OP") 
+# TODO: Handle NULL for no outputters
 # Intervals to output from each outputter. Must be same
 # order as 'op_select'. First element is for 'z' outputs,
 # second element is for 't' outputs.

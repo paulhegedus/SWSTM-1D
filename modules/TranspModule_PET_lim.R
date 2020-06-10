@@ -1,4 +1,4 @@
-## Title: TranspModule_Uniform
+## Title: TranspModule_PET_lim
 ## 
 ## Interface/Abstraction: This object follows the "modules" 
 ## interface consisting of the methods;SetUp(), Execute(), Update(), plotGen()
@@ -12,8 +12,8 @@
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
 # DrainModuleFC Class Generator ---------------------------
-TranspModule_Uniform <- R6Class(
-  classname="TranspModule_Uniform",
+TranspModule_PET_lim <- R6Class(
+  classname="TranspModule_PET_lim",
   public = list(
     soilModData = NULL, 
     modDataLoc = NULL,

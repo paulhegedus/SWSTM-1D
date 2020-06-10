@@ -44,12 +44,13 @@ RootModule_Length <- R6Class(
         !is.null(dfcIn$rootDepth),
         is.numeric(dfcIn$rootDepth),
         nrow(dfcIn) == nrow(self$soilModData$tDat),
-        max(self$soilModData$zDat$z) < max(dfcIn$rootDepth) 
+        max(self$soilModData$zDat$z) >= max(dfcIn$rootDepth) 
       )
       # 2) Input data has to be modified
       self$soilModData$tDat$rootDepth <- dfcIn$rootDepth
       # 3) Output data has to be modified (0 added as defaults to avoid elses)
-      self$soilModData$zDat$rootDepth <- 0 
+      self$soilModData$zDat$root <- 0 
+      # FIXME: what 'root' is needs to be specified. Here it is root length fraction
     },
     
     Execute = function(t) {
@@ -62,15 +63,19 @@ RootModule_Length <- R6Class(
           if (self$soilModData$soilProfile$soilLayers[[i]]$z >= root_depth) {
             non_root_depth <- 
               self$soilModData$soilProfile$soilLayers[[i]]$z - root_depth
-            self$soilModData$soilProfile$soilLayers[[i]]$rootDepth <- 
+            self$soilModData$soilProfile$soilLayers[[i]]$root <- 
               self$soilModData$soilProfile$soilLayers[[i]]$depth - non_root_depth
+            self$soilModData$soilProfile$soilLayers[[i]]$root <- 
+              self$soilModData$soilProfile$soilLayers[[i]]$root / root_depth
+            # FIXME: what 'root' is needs to be specified. Here it is root length fraciton
             break
           } else {
-            self$soilModData$soilProfile$soilLayers[[i]]$rootDepth <- 
-              self$soilModData$soilProfile$soilLayers[[i]]$depth
+            self$soilModData$soilProfile$soilLayers[[i]]$root <- 
+              self$soilModData$soilProfile$soilLayers[[i]]$depth / root_depth
           }
         } else {
-          self$soilModData$soilProfile$soilLayers[[i]]$rootDepth <- 0
+          self$soilModData$soilProfile$soilLayers[[i]]$root <- 0
+          # FIXME: what 'root' is needs to be specified. Here it is root length fraction
         }
       }
     },

@@ -1,4 +1,4 @@
-## Title: TranspModule_AET
+## Title: TranspModule_PET_noLim
 ## 
 ## Interface/Abstraction: This object follows the "modules" 
 ## interface consisting of the methods;SetUp(), Execute(), Update(), plotGen()
@@ -12,8 +12,8 @@
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
 # DrainModuleFC Class Generator ---------------------------
-TranspModule_AET <- R6Class(
-  classname="TranspModule_AET",
+TranspModule_PET_noLim <- R6Class(
+  classname="TranspModule_PET_noLim",
   public = list(
     soilModData = NULL, 
     modDataLoc = NULL,
@@ -42,6 +42,8 @@ TranspModule_AET <- R6Class(
         as.data.frame()
       stopifnot(
         is.data.frame(dfcIn),
+        !is.null(dfcIn$wp),
+        is.numeric(dfcIn$wp),
         nrow(dfcIn) == nrow(self$soilModData$tDat),
         !is.null(self$soilModData$tDat$rootDepth)
       )
@@ -71,8 +73,12 @@ TranspModule_AET <- R6Class(
   
   private = list(
     .TranspCalcFun = function(soilLayer, transp) {
-      soilLayer$transp <- transp * soilLayer$root
-      # FIXME: what 'root' is needs to be specified
+      et <- transp * soilLayer$rootDepth
+      if (et >= soilLayer$wp) {
+        soilLayer$transp <- et
+      } else {
+        soilLayer$transp <- et - wp
+      }
       soilLayer$vwc <- soilLayer$vwc - soilLayer$transp / soilLayer$depth
       return(soilLayer)
     }
