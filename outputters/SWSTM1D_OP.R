@@ -27,7 +27,7 @@ SWSTM1D_OP <- R6Class(
       stopifnot(
         exists("t_dat", soilModData),
         exists("z_dat", soilModData),
-        exists("ioPath", soilModData),
+        exists("io_path", soilModData),
         all(is.numeric(ints))
       ) 
       self$soilModData <- soilModData
@@ -39,17 +39,17 @@ SWSTM1D_OP <- R6Class(
         lapply(self$soilModData$soilProfile$soil_layers, as.data.frame)
       )
       z_dat$time <- 0
-      fwrite(z_dat, paste0(self$soilModData$ioPath, "/outputs/z_dat.csv"))
+      fwrite(z_dat, paste0(self$soilModData$io_path, "/outputs/z_dat.csv"))
       
       t_dat <- self$soilModData$t_dat[1, ]
       t_dat[1, ] <- NA
       t_dat[1, "time"] <- 0
-      fwrite(t_dat, paste0(self$soilModData$ioPath, "/outputs/t_dat.csv"))
+      fwrite(t_dat, paste0(self$soilModData$io_path, "/outputs/t_dat.csv"))
       
-      self$z_con <- file(description = paste0(self$soilModData$ioPath, 
+      self$z_con <- file(description = paste0(self$soilModData$io_path, 
                                              "/outputs/z_dat.csv"),
                         open = "a")
-      self$t_con <- file(description = paste0(self$soilModData$ioPath, 
+      self$t_con <- file(description = paste0(self$soilModData$io_path, 
                                              "/outputs/t_dat.csv"),
                         open = "a")
     },

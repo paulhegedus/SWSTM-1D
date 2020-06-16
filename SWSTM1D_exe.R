@@ -33,15 +33,13 @@ mods_data_loc <- list("DrainModuleFC_in",
                       "ET_inputs", # AET or PET, partitioned b/w E and T
                       "TranspModule_wp") # NA w/ AET
 # Outputter names
-op_select <- NULL #c("SWSTM1D_OP",
-            #   "DrainModuleFC_OP") 
+op_select <- c("SWSTM1D_OP") 
 # TODO: Handle NULL for no outputters
 # Intervals to output from each outputter. Must be same
 # order as 'op_select'. First element is for 'z' outputs,
 # second element is for 't' outputs.
 op_ints <- list(
-  c(1,1), # SWSTM1D_OP
-  c(1,1) # DrainModuleFC_OP
+  c(1,1) # SWSTM1D_OP
 )
 
 # Source Code ---------------------------
