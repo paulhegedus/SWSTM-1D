@@ -57,6 +57,7 @@ SWSTM1D <- R6Class(
                           outputter_list) {
       t_dat <- fread(paste0(io_path, "/inputs/", t_dat_name, ".csv")) %>%
         as.data.frame()
+      
       z_dat <- fread(paste0(io_path, "/inputs/", z_dat_name, ".csv")) %>%
         as.data.frame()
       # 1) SoilModData class object has to be initialized first
@@ -172,6 +173,7 @@ SoilModData <- R6Class(
         length(unique(z_dat$time)) == 1,  
         unique(z_dat$time) == 0 # Checks that user knows what they're inputting
       ) 
+      names(t_dat)[grep("thickness",names(t_dat))] <- "thiccness"
       self$t_dat <- t_dat
       self$z_dat <- z_dat
       self$mod_path <- mod_path

@@ -13,18 +13,20 @@
 ## outputs in different folders on your computer without having to copy the
 ## model script everywhere inputs and outputs are located.
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 # User Inputs ---------------------------
 # Need to provide the path to model files location (where 'modules' is)
 mod_path <- 
   "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
+
 # Need to provide the path to location of 'inputs' folder; 
 # outputs put here (this does not need to be same as model)
 io_path <- 
   "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
+
 # Filename of t or z inputs and the time step intervals to output data
 t_dat_name <- "tIn_dat"
 z_dat_name <- "zIn_dat"
+
 # Module names
 module_list <- list(
   list(module = "DrainModuleFC",
@@ -41,21 +43,11 @@ module_list <- list(
   list(module = "EvapModule_PE",
        z_dat = "wp_data") # wp_data not needed if passed in w/transp mod
 )
-
 # Outputter names
  outputter_list <- NULL # list(
 #   list(op = "SWSTM1D_OP",
 #        t_int = 1,
 #        z_int = 1)
-# )
-
-# op_select <- c("SWSTM1D_OP") 
-# # TODO: Handle NULL for no outputters
-# # Intervals to output from each outputter. Must be same
-# # order as 'op_select'. First element is for 'z' outputs,
-# # second element is for 't' outputs.
-# op_ints <- list(
-#   c(1,1) # SWSTM1D_OP
 # )
 
 # Source Code ---------------------------

@@ -91,11 +91,11 @@ EvapModule_PE <- R6Class(
   
   private = list(
     .evapCalcFun = function(soil_layer, evap_budget) {
-      if (soil_layer$vwc - soil_layer$wp > evap_budget / soil_layer$thickness) {
+      if (soil_layer$vwc - soil_layer$wp > evap_budget / soil_layer$thiccness) {
         soil_layer$AE <- evap_budget
-        soil_layer$vwc <- soil_layer$vwc - soil_layer$AE / soil_layer$thickness
+        soil_layer$vwc <- soil_layer$vwc - soil_layer$AE / soil_layer$thiccness
       } else {
-        soil_layer$AE <- soil_layer$vwc - soil_layer$wp * soil_layer$thickness
+        soil_layer$AE <- soil_layer$vwc - soil_layer$wp * soil_layer$thiccness
         soil_layer$vwc <- soil_layer$wp
       }
       return(soil_layer)

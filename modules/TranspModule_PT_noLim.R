@@ -90,12 +90,12 @@ TranspModule_PT_noLim <- R6Class(
   private = list(
     .transpCalcFun = function(soil_layer, PT) {
       AT <- PT * soil_layer$root_frac
-      new_vwc <- soil_layer$vwc - AT / soil_layer$thickness
+      new_vwc <- soil_layer$vwc - AT / soil_layer$thiccness
       if (new_vwc >= soil_layer$wp) {
         soil_layer$AT <- AT
         soil_layer$vwc <- new_vwc
       } else {
-        soil_layer$AT <- soil_layer$vwc - soil_layer$wp * soil_layer$thickness
+        soil_layer$AT <- soil_layer$vwc - soil_layer$wp * soil_layer$thiccness
         soil_layer$vwc <- soil_layer$wp
       }
       return(soil_layer)
