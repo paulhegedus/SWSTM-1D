@@ -1,4 +1,4 @@
-## Title: TranspModule_AET
+## Title: TranspModule_AT
 ## 
 ## Interface/Abstraction: This object follows the "modules" 
 ## interface consisting of the methods;SetUp(), Execute(), Update()
@@ -11,9 +11,9 @@
 ## Methods: SetUp, Execute, Update
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
-# TranspModule_AET Class Generator ---------------------------
-TranspModule_AET <- R6Class(
-  classname="TranspModule_AET",
+# TranspModule_AT Class Generator ---------------------------
+TranspModule_AT <- R6Class(
+  classname="TranspModule_AT",
   public = list(
     soilModData = NULL, 
 
