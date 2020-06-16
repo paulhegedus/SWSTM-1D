@@ -34,16 +34,17 @@ module_list <- list(
        crop = "wheat"),
   list(module = "ET_Partition_T",
        t_dat = "ET_inputs"),
-  list(module = "TranspModule_PT_noLim",
-       z_dat = "TranspModule_wp")
+  list(module = "TranspModule_AT")
+  # list(module = "TranspModule_PT_noLim",
+  #      z_dat = "TranspModule_wp")
 )
 
 # Outputter names
-outputter_list <- list(
-  list(op = "SWSTM1D_OP",
-       t_int = 1,
-       z_int = 1)
-)
+ outputter_list <- NULL #list(
+#   list(op = "SWSTM1D_OP",
+#        t_int = 1,
+#        z_int = 1)
+# )
 
 # op_select <- c("SWSTM1D_OP") 
 # # TODO: Handle NULL for no outputters

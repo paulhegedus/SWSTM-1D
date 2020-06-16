@@ -53,11 +53,12 @@ RootModule_Dist <- R6Class(
       # 2) Input data has to be modified
       self$soilModData$t_dat$root_depth <- dat_in$root_depth
       # 3) Output data has to be modified (0 added as defaults to avoid elses)
+      self$soilModData$t_dat$root_frac <- 0
       self$soilModData$z_dat$root_frac <- 0 
     },
     
     execute = function(t) {
-      browser()
+     # browser()
       # Calculate the root mass fraction at each soil layer for every time step
       max_root_depth <- self$soilModData$t_dat$root_depth[t]
       if (max_root_depth != 0) {
@@ -75,7 +76,11 @@ RootModule_Dist <- R6Class(
       }
     },
     
-    update = function(t) {}
+    update = function(t) {
+      self$soilModData$t_dat$root_frac[t] <- 
+        rbindlist(self$soilModData$soilProfile$soil_layers)$root_frac %>% 
+        sum()
+    }
   ),
   private = list(
     .rootDistCalc = function(layer_depth, max_root_depth) {

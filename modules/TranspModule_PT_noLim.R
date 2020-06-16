@@ -53,6 +53,12 @@ TranspModule_PT_noLim <- R6Class(
       self$soilModData$t_dat$AT <- 0
       self$soilModData$z_dat$AT <- 0
       self$soilModData$z_dat$wp <- dat_in$wp
+      
+      ifelse(
+        any(self$soilModData$t_dat$root_depth > max(self$soilModData$z_dat$z)),
+        {self$soilModData$t_dat$AT_sub_soil <- 0},
+        invisible()
+      )
     },
     
     execute = function(t) {

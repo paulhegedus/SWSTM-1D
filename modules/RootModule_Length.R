@@ -49,6 +49,7 @@ RootModule_Length <- R6Class(
       # 2) Input data has to be modified
       self$soilModData$t_dat$root_depth <- dat_in$root_depth
       # 3) Output data has to be modified (0 added as defaults to avoid elses)
+      self$soilModData$t_dat$root_frac <- 0
       self$soilModData$z_dat$root_frac <- 0 
     },
     
@@ -77,7 +78,11 @@ RootModule_Length <- R6Class(
       }
     },
     
-    update = function(t) {}
+    update = function(t) {
+      self$soilModData$t_dat$root_frac[t] <- 
+        rbindlist(self$soilModData$soilProfile$soil_layers)$root_frac %>% 
+        sum()
+    }
   )#,
   #private = list()
 )
