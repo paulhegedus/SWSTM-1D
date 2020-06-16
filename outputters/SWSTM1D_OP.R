@@ -19,14 +19,14 @@ SWSTM1D_OP <- R6Class(
   "SWSTM1D_OP",
   public = list(
     soilModData = NULL,
-    zCon = NULL,
-    tCon = NULL,
+    z_con = NULL,
+    t_con = NULL,
     ints = NULL,
     
     initialize = function(soilModData, ints) {
       stopifnot(
-        exists("tDat", soilModData),
-        exists("zDat", soilModData),
+        exists("t_dat", soilModData),
+        exists("z_dat", soilModData),
         exists("ioPath", soilModData),
         all(is.numeric(ints))
       ) 
@@ -34,59 +34,59 @@ SWSTM1D_OP <- R6Class(
       self$ints <- ints
       
       # Write initial z and t level info & open connection
-      zDat <- do.call(
+      z_dat <- do.call(
         rbind.data.frame,
-        lapply(self$soilModData$soilProfile$soilLayers, as.data.frame)
+        lapply(self$soilModData$soilProfile$soil_layers, as.data.frame)
       )
-      zDat$time <- 0
-      fwrite(zDat, paste0(self$soilModData$ioPath, "/outputs/zDat.csv"))
+      z_dat$time <- 0
+      fwrite(z_dat, paste0(self$soilModData$ioPath, "/outputs/z_dat.csv"))
       
-      tDat <- self$soilModData$tDat[1, ]
-      tDat[1, ] <- NA
-      tDat[1, "time"] <- 0
-      fwrite(tDat, paste0(self$soilModData$ioPath, "/outputs/tDat.csv"))
+      t_dat <- self$soilModData$t_dat[1, ]
+      t_dat[1, ] <- NA
+      t_dat[1, "time"] <- 0
+      fwrite(t_dat, paste0(self$soilModData$ioPath, "/outputs/t_dat.csv"))
       
-      self$zCon <- file(description = paste0(self$soilModData$ioPath, 
-                                             "/outputs/zDat.csv"),
+      self$z_con <- file(description = paste0(self$soilModData$ioPath, 
+                                             "/outputs/z_dat.csv"),
                         open = "a")
-      self$tCon <- file(description = paste0(self$soilModData$ioPath, 
-                                             "/outputs/tDat.csv"),
+      self$t_con <- file(description = paste0(self$soilModData$ioPath, 
+                                             "/outputs/t_dat.csv"),
                         open = "a")
     },
-    Write_z = function(t) {
+    writeZ = function(t) {
       op <- ifelse(t > self$ints[1],
                    t / self$ints[1],
                    self$ints[1] / t)
       if (op == as.integer(op)) {
-        zDat <- do.call(
+        z_dat <- do.call(
           rbind.data.frame,
-          lapply(self$soilModData$soilProfile$soilLayers, as.data.frame)
+          lapply(self$soilModData$soilProfile$soil_layers, as.data.frame)
         )
-        zDat$time <- t
-        write.table(zDat, 
-                    self$zCon, 
+        z_dat$time <- t
+        write.table(z_dat, 
+                    self$z_con, 
                     row.names = FALSE, 
                     col.names = FALSE, 
                     sep = ",")
       }
     },
-    Write_t = function(t) {
+    writeT = function(t) {
       op <- ifelse(t > self$ints[2],
                    t / self$ints[2],
                    self$ints[2] / t)
       if (op == as.integer(op)) {
-        tDat <- self$soilModData$tDat[t, ] %>% 
+        t_dat <- self$soilModData$t_dat[t, ] %>% 
           as.data.frame()
-        write.table(tDat, 
-                    self$tCon, 
+        write.table(t_dat, 
+                    self$t_con, 
                     row.names = FALSE, 
                     col.names = FALSE, 
                     sep = ",")
       }
     },
-    CloseCon = function() {
-      close(self$zCon)
-      close(self$tCon)
+    closeCon = function() {
+      close(self$z_con)
+      close(self$t_con)
     }
   )
   #private = list()

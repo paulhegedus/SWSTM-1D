@@ -7,7 +7,7 @@
 ## The user must supply the transpiration rates in the 't' level data frame
 ## that will be uniformly distributed across the root profile.
 ## 
-## Inputs: soilModData (R6 class - args: soilProfile, tDat,zDat)
+## Inputs: soilModData (R6 class - args: soilProfile, t_dat,zDat)
 ## Methods: SetUp, Execute, Update
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
@@ -46,8 +46,8 @@ TranspModule_PET_noLim <- R6Class(
         !is.null(dat_in$wp),
         is.numeric(dat_in$wp),
         nrow(dat_in) == nrow(self$soilModData$z_dat),
-        !is.null(self$soilModData$tDat$root_depth),
-        !is.null(self$soilModData$tDat$PT)
+        !is.null(self$soilModData$t_dat$root_depth),
+        !is.null(self$soilModData$t_dat$PT)
       )
       # 2) Input data has to be modified
       self$soilModData$t_dat$AT <- 0
@@ -77,12 +77,12 @@ TranspModule_PET_noLim <- R6Class(
   private = list(
     .transpCalcFun = function(soil_layer, PT) {
       AT <- PT * soil_layer$root_frac
-      new_vwc <- soil_layer$vwc - AT / soil_layer$thiccness
+      new_vwc <- soil_layer$vwc - AT / soil_layer$thickness
       if (new_vwc >= soil_layer$wp) {
         soil_layer$AT <- AT
         soil_layer$vwc <- new_vwc
       } else {
-        soil_layer$AT <- soil_layer$vwc - soil_layer$wp * soil_layer$thiccness
+        soil_layer$AT <- soil_layer$vwc - soil_layer$wp * soil_layer$thickness
         soil_layer$vwc <- soil_layer$wp
       }
       return(soil_layer)

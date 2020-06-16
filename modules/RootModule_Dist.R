@@ -8,7 +8,7 @@
 ## for each layer. Fractional root depths is permissable (i.e. 63.4 units 
 ## etc.). The 64th layer of the soilProfile has a root_depth of 0.4 units.
 ##
-## Inputs: soilModData (R6 class - args: soilProfile, tDat,zDat)
+## Inputs: soilModData (R6 class - args: soilProfile, t_dat,zDat)
 ## Methods: SetUp, Execute, Update, plotGen
 ##
 ## References:
@@ -46,7 +46,7 @@ RootModule_Dist <- R6Class(
         is.data.frame(dat_in),
         !is.null(dat_in$root_depth),
         is.numeric(dat_in$root_depth),
-        nrow(dat_in) == nrow(self$soilModData$tDat)
+        nrow(dat_in) == nrow(self$soilModData$t_dat)
       )
       # 2) Input data has to be modified
       self$soilModData$t_dat$root_depth <- dat_in$root_depth
@@ -56,7 +56,7 @@ RootModule_Dist <- R6Class(
     
     execute = function(t) {
       # Calculate the root mass fraction at each soil layer for every time step
-      max_root_depth <- self$soilModData$tDat$root_depth[t]
+      max_root_depth <- self$soilModData$t_dat$root_depth[t]
       if (max_root_depth != 0) {
         layer_depths <- do.call(rbind.data.frame,
                                 self$soilModData$soilProfile$soil_layers)$z

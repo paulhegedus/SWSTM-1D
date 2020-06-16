@@ -7,7 +7,7 @@
 ## specifically partitions all ET to T. This will get more sophisticated
 ## eventually.
 ## 
-## Inputs: soilModData (R6 class - args: soilProfile, tDat,zDat)
+## Inputs: soilModData (R6 class - args: soilProfile, t_dat,zDat)
 ## Methods: SetUp, Execute, Update
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
