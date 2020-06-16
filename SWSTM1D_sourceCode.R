@@ -189,11 +189,11 @@ SoilModData <- R6Class(
         is.data.frame(z_dat),  
         any(grepl("time", names(t_dat))), 
         any(grepl("time", names(z_dat))),  
-        any(grepl("depth", names(z_dat))),  
+        any(grepl("thickness", names(z_dat))),  
         is.numeric(t_dat$time), 
         is.numeric(z_dat$time),  
-        is.numeric(z_dat$depth),  
-        all(z_dat$depth > 0),  
+        is.numeric(z_dat$thiccness),  
+        all(z_dat$thiccness > 0),  
         length(unique(z_dat$time)) == 1,  
         unique(z_dat$time) == 0 # Checks that user knows what they're inputting
       ) 
@@ -202,7 +202,7 @@ SoilModData <- R6Class(
       self$mod_path <- mod_path
       self$io_path <- io_path
       
-      self$z_dat$z <- cumsum(self$z_dat$depth)
+      self$z_dat$z <- cumsum(self$z_dat$thiccness)
     }, 
     
     BuildSoilProfile = function() {

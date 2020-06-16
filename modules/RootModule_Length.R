@@ -63,7 +63,7 @@ RootModule_Length <- R6Class(
             non_root_depth <- 
               self$soilModData$soilProfile$soil_layers[[i]]$z - max_root_depth
             self$soilModData$soilProfile$soil_layers[[i]]$root_depth <- 
-              self$soilModData$soilProfile$soil_layers[[i]]$depth - non_root_depth
+              self$soilModData$soilProfile$soil_layers[[i]]$thiccness - non_root_depth
             self$soilModData$soilProfile$soil_layers[[i]]$root_frac <- 
               self$soilModData$soilProfile$soil_layers[[i]]$root_depth / max_root_depth
             break

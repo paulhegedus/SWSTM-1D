@@ -62,7 +62,7 @@ DrainModuleFC <- R6Class(
         # Checked if the user added a precip column. If not null, use precip.
         self$soilModData$soilProfile$soil_layers[[1]]$w_top <- 
           self$soilModData$t_dat$prec[t] / 
-          self$soilModData$soilProfile$soil_layers[[1]]$depth
+          self$soilModData$soilProfile$soil_layers[[1]]$thiccness
       } # Else not needed b/c default set to 0
       for (i in 1:num_layers) {
         self$soilModData$soilProfile$soil_layers[[i]] <- 
@@ -86,7 +86,7 @@ DrainModuleFC <- R6Class(
     .drainFunFC = function(soil_layer) {
       soil_layer$vwc <- soil_layer$vwc + soil_layer$w_top
       if (soil_layer$vwc > soil_layer$fc) {
-        soil_layer$w_bot <- (soil_layer$vwc - soil_layer$fc) * soil_layer$depth
+        soil_layer$w_bot <- (soil_layer$vwc - soil_layer$fc) * soil_layer$thiccness
         soil_layer$vwc <- soil_layer$vwc - soil_layer$w_bot
       } # Else not needed b/c default set to 0 
       return(soil_layer)
