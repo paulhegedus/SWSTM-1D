@@ -57,7 +57,7 @@ RootModule_Dist <- R6Class(
     },
     
     execute = function(t) {
-      #browser()
+      browser()
       # Calculate the root mass fraction at each soil layer for every time step
       max_root_depth <- self$soilModData$t_dat$root_depth[t]
       if (max_root_depth != 0) {
