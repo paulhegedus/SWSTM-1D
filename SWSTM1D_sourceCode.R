@@ -112,9 +112,7 @@ SWSTM1D <- R6Class(
       source(paste0(self$soilModData$mod_path, "/modules/", 
                     module_item$module, ".R"))
       # 2) Have to initialize module based on SoilModData
-      init_text <- ifelse(is.na(mod_data_loc),
-                         "$new(self$soilModData)",
-                         "$new(self$soilModData, module_item)")
+      init_text <- "$new(self$soilModData, module_item)"
       return(eval(parse(text = paste0(module_item$module, init_text))))
     },  
     .setUpModules = function(module) {

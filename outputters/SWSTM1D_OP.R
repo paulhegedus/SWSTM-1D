@@ -55,9 +55,9 @@ SWSTM1D_OP <- R6Class(
                         open = "a")
     },
     writeZ = function(t) {
-      op <- ifelse(t > self$ints[1],
-                   t / self$ints[1],
-                   self$ints[1] / t)
+      op <- ifelse(t > self$t_int,
+                   t / self$t_int,
+                   self$t_int / t)
       if (op == as.integer(op)) {
         z_dat <- do.call(
           rbind.data.frame,
@@ -72,9 +72,9 @@ SWSTM1D_OP <- R6Class(
       }
     },
     writeT = function(t) {
-      op <- ifelse(t > self$ints[2],
-                   t / self$ints[2],
-                   self$ints[2] / t)
+      op <- ifelse(t > self$z_int,
+                   t / self$z_int,
+                   self$z_int / t)
       if (op == as.integer(op)) {
         t_dat <- self$soilModData$t_dat[t, ] %>% 
           as.data.frame()
