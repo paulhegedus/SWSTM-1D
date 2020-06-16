@@ -18,17 +18,17 @@ ET_Partition_T <- R6Class(
     soilModData = NULL, 
     mod_data_loc = NULL,
     
-    initialize = function(soilModData, mod_data_loc) {
+    initialize = function(soilModData, module_item) {
       stopifnot(
         exists("t_dat", soilModData),
         exists("z_dat", soilModData),
-        exists("io_path", soilModData)
+        exists("io_path", soilModData),
+        file.exists(paste0(soilModData$io_path, "/inputs/", 
+                           module_item$t_dat,".csv"))
       )
-      stopifnot(
-        file.exists(paste0(soilModData$io_path, "/inputs/", mod_data_loc,".csv"))
-      )
+      
       self$soilModData <- soilModData
-      self$mod_data_loc <- mod_data_loc
+      self$mod_data_loc <- module_item$t_dat
     },
     
     setUp = function() {

@@ -22,18 +22,20 @@ RootModule_Dist <- R6Class(
   public = list(
     soilModData = NULL, 
     mod_data_loc = NULL,
+    fanEtAlMod = NULL,
     
-    initialize = function(soilModData, mod_data_loc) {
+    initialize = function(soilModData, module_item) {
       stopifnot(
         exists("t_dat", soilModData),
         exists("z_dat", soilModData),
         exists("io_path", soilModData),
         file.exists(paste0(soilModData$io_path, 
                            "/inputs/", 
-                           mod_data_loc,".csv"))
+                           module_item$t_dat,".csv"))
       ) 
       self$soilModData <- soilModData
-      self$mod_data_loc <- mod_data_loc
+      self$mod_data_loc <- module_item$t_dat
+      self$fanEtAlMod <- FanEtAlMod$new(module_item$crop)
     },
     
     setUp = function() {
@@ -78,7 +80,7 @@ RootModule_Dist <- R6Class(
     .rootDistCalc = function(layer_depth, max_root_depth) {
       root_frac <- ifelse(layer_depth > max_root_depth,
                           1,
-                          private$.fanEtAlCalc(layer_depth, max_root_depth))
+                          self$fanEtAlMod$fanCalc(layer_depth, max_root_depth))
       return(root_frac)
     },
     # FIXME: Hardcoded to wheat
@@ -90,5 +92,38 @@ RootModule_Dist <- R6Class(
     }
   )
 )
+
+FanEtAlMod <- R6Class(
+  classname = "FanEtAlMod",
+  public = list(
+    crop = NULL,
+    fan_table1 =  data.frame(
+      crop = c("wheat"),
+      da = c(17.2),
+      c = c(-1.286)
+    ),
+    da = NULL,
+    c = NULL,
+    
+    initialize = function(crop) {
+      stopifnot(is.character(crop))
+      self$crop <- crop
+      self$da <- self$fan_table1[grep(crop,self$fan_table1$crop),"da"]
+      self$c <- self$fan_table1[grep(crop,self$fan_table1$crop),"c"]
+    },
+    
+    fanCalc = function(d, dmax) {
+      comp1 <- 1 / (1 + (d / self$da)^self$c)
+      comp2 <- 1 - 1 / (1 + (dmax / self$da)^self$c) 
+      comp3 <- d / dmax
+      return(comp1 + comp2 * comp3)
+    }
+  )
+)
+
+
+
+
+
 
 

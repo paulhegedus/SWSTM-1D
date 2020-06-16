@@ -17,7 +17,7 @@ TranspModule_AET <- R6Class(
   public = list(
     soilModData = NULL, 
 
-    initialize = function(soilModData, mod_data_loc = NULL) {
+    initialize = function(soilModData, module_item = NULL) {
       stopifnot(
         exists("t_dat", soilModData),
         exists("z_dat", soilModData),

@@ -21,17 +21,18 @@ SWSTM1D_OP <- R6Class(
     soilModData = NULL,
     z_con = NULL,
     t_con = NULL,
-    ints = NULL,
+    z_int = NULL,
+    t_int = NULL,
     
-    initialize = function(soilModData, ints) {
+    initialize = function(soilModData, op_list) {
       stopifnot(
         exists("t_dat", soilModData),
         exists("z_dat", soilModData),
-        exists("io_path", soilModData),
-        all(is.numeric(ints))
+        exists("io_path", soilModData)
       ) 
       self$soilModData <- soilModData
-      self$ints <- ints
+      self$z_int <- op_list$z_int
+      self$t_int <- op_list$t_int
       
       # Write initial z and t level info & open connection
       z_dat <- do.call(
