@@ -29,18 +29,18 @@ z_dat_name <- "zIn_dat"
 module_list <- list(
   list(module = "DrainModuleFC",
        z_dat = "DrainModuleFC_in"),
-  list(module = "RootModule_Dist",
-       t_dat = "RootModule_root_depths",
-       crop = "wheat"),
-  list(module = "ET_Partition_T",
+  # list(module = "RootModule_Dist",
+  #      t_dat = "RootModule_root_depths",
+  #      crop = "wheat"),
+  list(module = "ET_Partition_E",
        t_dat = "ET_inputs"),
-  list(module = "TranspModule_AT")
+  list(module = "EvapModule_AE")
   # list(module = "TranspModule_PT_noLim",
   #      z_dat = "TranspModule_wp")
 )
 
 # Outputter names
- outputter_list <- NULL #list(
+ outputter_list <- NULL # list(
 #   list(op = "SWSTM1D_OP",
 #        t_int = 1,
 #        z_int = 1)

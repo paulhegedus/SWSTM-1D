@@ -13,7 +13,7 @@
 ## Methods: SetUp, Execute, Update
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
-# TranspModule_AT Class Generator ---------------------------
+# TranspModule_AE Class Generator ---------------------------
 EvapModule_AE <- R6Class(
   classname="EvapModule_AE",
   public = list(
@@ -40,53 +40,41 @@ EvapModule_AE <- R6Class(
     },
     
     execute = function(t) {
-      for (i in 1:length(self$soilModData$soilProfile$soil_layers)) {
-        if (self$soilModData$t_dat$PE[t] != 0) {
-          self$soilModData$soilProfile$soil_layers[[i]] <- 
-            private$.transpCalcFun(self$soilModData$soilProfile$soil_layers[[i]], 
-                                   self$soilModData$t_dat$PT[t])
-        } else {
-          self$soilModData$soilProfile$soil_layers[[i]]$AE <- 0
+      if (self$soilModData$t_dat$PE[t] != 0) {
+        evap_budget <- self$soilModData$t_dat$PE[t]
+        for (i in 1:length(self$soilModData$soilProfile$soil_layers)) {
+          if (evap_budget > 0) {
+            self$soilModData$soilProfile$soil_layers[[i]] <- 
+              private$.evapCalcFun(self$soilModData$soilProfile$soil_layers[[i]],
+                                   evap_budget)
+            evap_budget <- 
+              evap_budget - self$soilModData$soilProfile$soil_layers[[i]]$AE
+          } else {
+            break
+          }
         }
-      }
-      # take water out of top layer
-      
-      
-      # if not enough water take from next layer
-      
-      
-      
-      for (i in 1:length(self$soilModData$soilProfile$soil_layers)) {
-        if (self$soilModData$t_dat$PT[t] != 0) {
-          self$soilModData$soilProfile$soil_layers[[i]] <- 
-            private$.transpCalcFun(self$soilModData$soilProfile$soil_layers[[i]], 
-                                   self$soilModData$t_dat$PT[t])
-        } else {
-          self$soilModData$soilProfile$soil_layers[[i]]$AT <- 0
-        }
+      } else {
+        lapply(self$soilModData$soilProfile$soil_layers, 
+               function(soil_layer) soil_layer$AE <- 0)
       }
     },
     
     update = function(t) {
-      # update AE in t_dat
-      
-      
-      self$soilModData$t_dat$AT[t] <- 
-        rbindlist(self$soilModData$soilProfile$soil_layers)$AT %>% 
-        sum()
-      ifelse(
-        self$soilModData$t_dat$root_frac[t] < 1,
-        {self$soilModData$t_dat$AT_sub_soil[t] <- 
-          self$soilModData$t_dat$PT[t] - self$soilModData$t_dat$AT[t]},
-        {self$soilModData$t_dat$AT_sub_soil[t] <- 0}
-      )
+       self$soilModData$t_dat$AE[t] <- 
+         rbindlist(self$soilModData$soilProfile$soil_layers)$AE %>% 
+         sum()
     }
   ),
   
   private = list(
-    .evapCalc = function(soil_layer, PE) {
-      soil_layer$AE <- PT * soil_layer$root_frac
-      soil_layer$vwc <- soil_layer$vwc - soil_layer$AT / soil_layer$thickness
+    .evapCalcFun = function(soil_layer, evap_budget) {
+      if (soil_layer$vwc > evap_budget / soil_layer$thickness) {
+        soil_layer$AE <- evap_budget
+        soil_layer$vwc <- soil_layer$vwc - soil_layer$AE / soil_layer$thickness
+      } else {
+        soil_layer$AE <- soil_layer$vwc * soil_layer$thickness
+        soil_layer$vwc <- 0
+      }
       return(soil_layer)
     }
   )
