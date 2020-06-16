@@ -16,25 +16,25 @@
 
 # User Inputs ---------------------------
 # Need to provide the path to model files location (where 'modules' is)
-modPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
+mod_path <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
 # Need to provide the path to location of 'inputs' folder; 
 # outputs put here (this does not need to be same as model)
-ioPath <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
+io_path <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
 # Filename of t or z inputs and the time step intervals to output data
-tInName <- "tIn_dat"
-zInName <- "zIn_dat"
+t_dat_name <- "tIn_dat"
+z_dat_name <- "zIn_dat"
 # Module names
 mods_select <- c("DrainModuleFC",
-                 "RootModule_Dist", #  RootModule_Length
-                 "TranspModule_AET") #   TranspModule_PET_noLim
+                 "RootModule_Dist", # OR  RootModule_Length
+                 "ET_Partition_T", # Partition all ET to T
+                 "TranspModule_PET_noLim") # OR TranspModule_AET
 mods_data_loc <- list("DrainModuleFC_in",
-                   "RootModule_root_depths",
-                   list(ET = "TranspModule_ET", WP = "TranspModule_wp")) 
-                   # FIXME: MUST name ET or WP... 
-                   # OR must give ET first, WP second
+                      "RootModule_root_depths",
+                      "ET_inputs", # AET or PET, partitioned b/w E and T
+                      "TranspModule_wp") # NA w/ AET
 # Outputter names
-op_select <- c("SWSTM1D_OP",
-               "DrainModuleFC_OP") 
+op_select <- NULL #c("SWSTM1D_OP",
+            #   "DrainModuleFC_OP") 
 # TODO: Handle NULL for no outputters
 # Intervals to output from each outputter. Must be same
 # order as 'op_select'. First element is for 'z' outputs,
@@ -45,19 +45,19 @@ op_ints <- list(
 )
 
 # Source Code ---------------------------
-source(paste0(modPath, "/SWSTM1D_sourceCode.R"))
+source(paste0(mod_path, "/SWSTM1D_sourceCode.R"))
 
 # Check Model Requirements/Inputs ---------------------------
-CheckForModelReqs(modPath,ioPath)
+checkForModelReqs(mod_path,io_path)
 
 # Initialize Model ---------------------------
 pc <- proc.time()
 
 swstm1d <- SWSTM1D$new(
-  modPath = modPath,
-  ioPath = ioPath,
-  tInName = tInName,
-  zInName = zInName,
+  mod_path = mod_path,
+  io_path = io_path,
+  t_dat_name = t_dat_name,
+  z_dat_name = z_dat_name,
   mods_select = mods_select,
   op_select = op_select,
   mods_data_loc = mods_data_loc,
@@ -65,13 +65,13 @@ swstm1d <- SWSTM1D$new(
 )
 
 # SetUp Model ---------------------------
-swstm1d$SetUp() 
+swstm1d$setUp() 
 
 # Execute Model Simulation ---------------------------
-swstm1d$Execute() 
+swstm1d$execute() 
 
 # Save Model Simulation Outputs ---------------------------
-swstm1d$Output() %>%
+swstm1d$output() %>%
   invisible()
 
 proc.time() - pc

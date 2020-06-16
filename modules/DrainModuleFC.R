@@ -17,79 +17,79 @@ DrainModuleFC <- R6Class(
   classname="DrainModuleFC",
   public = list(
     soilModData = NULL, 
-    modDataLoc = NULL,
+    mod_data_loc = NULL,
 
-    initialize = function(soilModData, modDataLoc) {
+    initialize = function(soilModData, mod_data_loc) {
       stopifnot(
-        exists("tDat", soilModData),
-        exists("zDat", soilModData),
-        exists("ioPath", soilModData),
-        file.exists(paste0(soilModData$ioPath, 
+        exists("t_dat", soilModData),
+        exists("z_dat", soilModData),
+        exists("io_path", soilModData),
+        file.exists(paste0(soilModData$io_path, 
                            "/inputs/", 
-                           modDataLoc,".csv")),
-        !is.null(soilModData$zDat$vwc),
-        is.numeric(soilModData$zDat$vwc), 
-        all(soilModData$zDat$vwc > 0 & soilModData$zDat$vwc < 1)
+                           mod_data_loc,".csv")),
+        !is.null(soilModData$z_dat$vwc),
+        is.numeric(soilModData$z_dat$vwc), 
+        all(soilModData$z_dat$vwc > 0 & soilModData$z_dat$vwc < 1)
       ) 
       self$soilModData <- soilModData
-      self$modDataLoc <- modDataLoc
+      self$mod_data_loc <- mod_data_loc
     },
     
-    SetUp = function() {
+    setUp = function() {
       # 1) Modules specific data must be in folder named 'inputs'
-      dfcIn <- fread(paste0(self$soilModData$ioPath, 
+      dat_in <- fread(paste0(self$soilModData$io_path, 
                             "/inputs/", 
-                            self$modDataLoc,".csv")) %>%
+                            self$mod_data_loc,".csv")) %>%
         as.data.frame()
       stopifnot(
-        is.data.frame(dfcIn),
-        !is.null(dfcIn$fc),
-        is.numeric(dfcIn$fc),
-        nrow(dfcIn) == nrow(self$soilModData$zDat) 
+        is.data.frame(dat_in),
+        !is.null(dat_in$fc),
+        is.numeric(dat_in$fc),
+        nrow(dat_in) == nrow(self$soilModData$z_dat) 
       )
       # 2) Input data has to be modified
-      self$soilModData$zDat$fc <- dfcIn$fc
+      self$soilModData$z_dat$fc <- dat_in$fc
       # 3) Output data has to be modified (0 added as defaults to avoid elses)
-      self$soilModData$tDat$deepPerc <- 0 
-      self$soilModData$zDat$wTop <- 0 
-      self$soilModData$zDat$wBot <- 0 
+      self$soilModData$t_dat$deep_perc <- 0 
+      self$soilModData$z_dat$w_top <- 0 
+      self$soilModData$z_dat$w_bot <- 0 
     },
     
-    Execute = function(t) {
+    execute = function(t) {
       # Get the number of soil layers for shorter pointer
-      num_layers <- length(self$soilModData$soilProfile$soilLayers)
-      if (!is.null(self$soilModData$tDat$prec)) { 
+      num_layers <- length(self$soilModData$soilProfile$soil_layers)
+      if (!is.null(self$soilModData$t_dat$prec)) { 
         # Checked if the user added a precip column. If not null, use precip.
-        self$soilModData$soilProfile$soilLayers[[1]]$wTop <- 
-          self$soilModData$tDat$prec[t] / 
-          self$soilModData$soilProfile$soilLayers[[1]]$depth
+        self$soilModData$soilProfile$soil_layers[[1]]$w_top <- 
+          self$soilModData$t_dat$prec[t] / 
+          self$soilModData$soilProfile$soil_layers[[1]]$depth
       } # Else not needed b/c default set to 0
       for (i in 1:num_layers) {
-        self$soilModData$soilProfile$soilLayers[[i]] <- 
-          private$.DrainFunFC(self$soilModData$soilProfile$soilLayers[[i]])
+        self$soilModData$soilProfile$soil_layers[[i]] <- 
+          private$.drainFunFC(self$soilModData$soilProfile$soil_layers[[i]])
         if (i != num_layers) {
-          self$soilModData$soilProfile$soilLayers[[i+1]]$wTop <- 
-            self$soilModData$soilProfile$soilLayers[[i]]$wBot
+          self$soilModData$soilProfile$soil_layers[[i+1]]$w_top <- 
+            self$soilModData$soilProfile$soil_layers[[i]]$w_bot
         }
       }
     },
     
-    Update = function(t) {
+    update = function(t) {
       # Get the number of soil layers for shorter pointer
-      num_layers <- length(self$soilModData$soilProfile$soilLayers)
-      self$soilModData$tDat$deepPerc[t] <- 
-        self$soilModData$soilProfile$soilLayers[[num_layers]]$wBot
+      num_layers <- length(self$soilModData$soilProfile$soil_layers)
+      self$soilModData$t_dat$deep_perc[t] <- 
+        self$soilModData$soilProfile$soil_layers[[num_layers]]$w_bot
     }
   ),
   
   private = list(
-    .DrainFunFC = function(soilLayer) {
-      soilLayer$vwc <- soilLayer$vwc + soilLayer$wTop
-      if (soilLayer$vwc > soilLayer$fc) {
-        soilLayer$wBot <- (soilLayer$vwc - soilLayer$fc) * soilLayer$depth
-        soilLayer$vwc <- soilLayer$vwc - soilLayer$wBot
+    .drainFunFC = function(soil_layer) {
+      soil_layer$vwc <- soil_layer$vwc + soil_layer$w_top
+      if (soil_layer$vwc > soil_layer$fc) {
+        soil_layer$w_bot <- (soil_layer$vwc - soil_layer$fc) * soil_layer$depth
+        soil_layer$vwc <- soil_layer$vwc - soil_layer$w_bot
       } # Else not needed b/c default set to 0 
-      return(soilLayer)
+      return(soil_layer)
     }
   )
 )

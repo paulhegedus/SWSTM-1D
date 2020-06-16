@@ -6,10 +6,10 @@
 ## Description: This class is a root module where the user supplies the depth
 ## of roots at each time step. In this module, the root lengths are distributed
 ## across each layer. Fractional root lengths are permissable (i.e. 63.4 units 
-## etc.). The 64th layer of the soilProfile has a rootDepth of 0.4 units. This
+## etc.). The 64th layer of the soilProfile has a root_depth of 0.4 units. This
 ## module calculates root length at each depth, not mass.
 ##
-## Inputs: soilModData (R6 class - args: soilProfile, tDat,zDat)
+## Inputs: soilModData (R6 class - args: soilProfile, t_dat,zDat)
 ## Methods: SetUp, Execute, Update, plotGen
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
@@ -18,69 +18,66 @@ RootModule_Length <- R6Class(
   classname="RootModule_Length",
   public = list(
     soilModData = NULL, 
-    modDataLoc = NULL,
+    mod_data_loc = NULL,
     
-    initialize = function(soilModData, modDataLoc) {
+    initialize = function(soilModData, mod_data_loc) {
       stopifnot(
-        exists("tDat", soilModData),
-        exists("zDat", soilModData),
-        exists("ioPath", soilModData),
-        file.exists(paste0(soilModData$ioPath, 
+        exists("t_dat", soilModData),
+        exists("z_dat", soilModData),
+        exists("io_path", soilModData),
+        file.exists(paste0(soilModData$io_path, 
                            "/inputs/", 
-                           modDataLoc,".csv"))
+                           mod_data_loc,".csv"))
       ) 
       self$soilModData <- soilModData
-      self$modDataLoc <- modDataLoc
+      self$mod_data_loc <- mod_data_loc
     },
     
-    SetUp = function() {
+    setUp = function() {
       # 1) Modules specific data must be in folder named 'inputs'
-      dfcIn <- fread(paste0(self$soilModData$ioPath, 
+      dat_in <- fread(paste0(self$soilModData$io_path, 
                             "/inputs/", 
-                            self$modDataLoc,".csv")) %>%
+                            self$mod_data_loc,".csv")) %>%
         as.data.frame()
       stopifnot(
-        is.data.frame(dfcIn),
-        !is.null(dfcIn$rootDepth),
-        is.numeric(dfcIn$rootDepth),
-        nrow(dfcIn) == nrow(self$soilModData$tDat),
-        max(self$soilModData$zDat$z) >= max(dfcIn$rootDepth) 
+        is.data.frame(dat_in),
+        !is.null(dat_in$root_depth),
+        is.numeric(dat_in$root_depth),
+        nrow(dat_in) == nrow(self$soilModData$t_dat),
+        max(self$soilModData$z_dat$z) >= max(dat_in$root_depth) 
       )
       # 2) Input data has to be modified
-      self$soilModData$tDat$rootDepth <- dfcIn$rootDepth
+      self$soilModData$t_dat$root_depth <- dat_in$root_depth
       # 3) Output data has to be modified (0 added as defaults to avoid elses)
-      self$soilModData$zDat$root <- 0 
-      # FIXME: what 'root' is needs to be specified. Here it is root length fraction
+      self$soilModData$z_dat$root_frac <- 0 
     },
     
-    Execute = function(t) {
+    execute = function(t) {
       # Calculate the root depth at each soil layer for every time step
-      root_depth <- self$soilModData$tDat$rootDepth[t]
-      num_layers <- length(self$soilModData$soilProfile$soilLayers)
-      # Find the layer where z > rootDepth, set root depth
+      max_root_depth <- self$soilModData$t_dat$root_depth[t]
+      num_layers <- length(self$soilModData$soilProfile$soil_layers)
+      # Find the layer where z > max_root_depth, set root depth
       for (i in 1:num_layers) {
-        if (root_depth != 0) {
-          if (self$soilModData$soilProfile$soilLayers[[i]]$z >= root_depth) {
+        if (max_root_depth != 0) {
+          if (self$soilModData$soilProfile$soil_layers[[i]]$z >= max_root_depth) {
             non_root_depth <- 
-              self$soilModData$soilProfile$soilLayers[[i]]$z - root_depth
-            self$soilModData$soilProfile$soilLayers[[i]]$root <- 
-              self$soilModData$soilProfile$soilLayers[[i]]$depth - non_root_depth
-            self$soilModData$soilProfile$soilLayers[[i]]$root <- 
-              self$soilModData$soilProfile$soilLayers[[i]]$root / root_depth
-            # FIXME: what 'root' is needs to be specified. Here it is root length fraciton
+              self$soilModData$soilProfile$soil_layers[[i]]$z - max_root_depth
+            self$soilModData$soilProfile$soil_layers[[i]]$root_depth <- 
+              self$soilModData$soilProfile$soil_layers[[i]]$depth - non_root_depth
+            self$soilModData$soilProfile$soil_layers[[i]]$root_frac <- 
+              self$soilModData$soilProfile$soil_layers[[i]]$root_depth / max_root_depth
             break
           } else {
-            self$soilModData$soilProfile$soilLayers[[i]]$root <- 
-              self$soilModData$soilProfile$soilLayers[[i]]$depth / root_depth
+            self$soilModData$soilProfile$soil_layers[[i]]$root_frac <- 
+              self$soilModData$soilProfile$soil_layers[[i]]$root_depth / max_root_depth
           }
         } else {
-          self$soilModData$soilProfile$soilLayers[[i]]$root <- 0
-          # FIXME: what 'root' is needs to be specified. Here it is root length fraction
+          self$soilModData$soilProfile$soil_layers[[i]]$root_frac <- 0
         }
       }
     },
     
-    Update = function(t) {}
+    update = function(t) {}
   )#,
   #private = list()
 )

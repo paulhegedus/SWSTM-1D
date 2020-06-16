@@ -1,7 +1,7 @@
 ## Title: TranspModule_PET_noLim
 ## 
 ## Interface/Abstraction: This object follows the "modules" 
-## interface consisting of the methods;SetUp(), Execute(), Update(), plotGen()
+## interface consisting of the methods;SetUp(), Execute(), Update()
 ##
 ## Description: This class models uniform transpiration across the root depth.
 ## The user must supply the transpiration rates in the 't' level data frame
@@ -11,89 +11,81 @@
 ## Methods: SetUp, Execute, Update
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
-# DrainModuleFC Class Generator ---------------------------
+# TranspModule_PET_noLim Class Generator ---------------------------
 TranspModule_PET_noLim <- R6Class(
   classname="TranspModule_PET_noLim",
   public = list(
     soilModData = NULL, 
-    modDataLoc = NULL,
+    mod_data_loc = NULL,
     
-    initialize = function(soilModData, modDataLoc) {
+    initialize = function(soilModData, mod_data_loc) {
       stopifnot(
-        exists("tDat", soilModData),
-        exists("zDat", soilModData),
-        exists("ioPath", soilModData),
-        !is.null(soilModData$zDat$vwc),
-        is.numeric(soilModData$zDat$vwc), 
-        all(soilModData$zDat$vwc > 0 & soilModData$zDat$vwc < 1),
-        any(names(modDataLoc) == "ET"), # Must have ET defined
-        any(names(modDataLoc) == "WP") # Must have WP defined
+        exists("t_dat", soilModData),
+        exists("z_dat", soilModData),
+        exists("io_path", soilModData),
+        !is.null(soilModData$z_dat$vwc),
+        is.numeric(soilModData$z_dat$vwc), 
+        all(soilModData$z_dat$vwc > 0 & soilModData$z_dat$vwc < 1)
       )
-      for (i in 1:length(modDataLoc)) {
-        stopifnot(
-          file.exists(paste0(soilModData$ioPath, "/inputs/", modDataLoc[[i]],".csv"))
-        )
-      }
+      stopifnot(
+        file.exists(paste0(soilModData$io_path, "/inputs/", mod_data_loc,".csv"))
+      )
       self$soilModData <- soilModData
-      self$modDataLoc <- modDataLoc
+      self$mod_data_loc <- mod_data_loc
     },
     
-    SetUp = function() {
+    setUp = function() {
       # 1) Modules specific data must be in folder named 'inputs'
-      dfcIn <- rep(as.list(NA), length(self$modDataLoc)) %>%
-        `names<-`(names(self$modDataLoc))
-      for (i in 1:length(self$modDataLoc)) {
-        dfcIn[[i]] <- fread(paste0(self$soilModData$ioPath, 
-                                   "/inputs/", 
-                                   self$self$modDataLoc[[i]],".csv")) %>%
-          as.data.frame()
-      }
+      dat_in <- fread(paste0(self$soilModData$io_path, 
+                            "/inputs/", 
+                            self$mod_data_loc,".csv")) %>%
+        as.data.frame()
       
       stopifnot(
-        is.data.frame(dfcIn$ET),
-        !is.null(dfcIn$ET$ET),
-        is.numeric(dfcIn$ET$ET),
-        nrow(dfcIn$ET) == nrow(self$soilModData$tDat),
-        is.data.frame(dfcIn$WP),
-        !is.null(dfcIn$WP$wp),
-        is.numeric(dfcIn$WP$wp),
-        nrow(dfcIn$WP) == nrow(self$soilModData$zDat),
-        !is.null(self$soilModData$tDat$rootDepth)
+        is.data.frame(dat_in),
+        !is.null(dat_in$wp),
+        is.numeric(dat_in$wp),
+        nrow(dat_in) == nrow(self$soilModData$z_dat),
+        !is.null(self$soilModData$tDat$root_depth),
+        !is.null(self$soilModData$tDat$PT)
       )
       # 2) Input data has to be modified
-      self$soilModData$tDat$transp <- dfcIn$transp
-      self$soilModData$zDat$transp <- 0
+      self$soilModData$t_dat$AT <- 0
+      self$soilModData$z_dat$AT <- 0
+      self$soilModData$z_dat$wp <- dat_in$wp
     },
     
-    Execute = function(t) {
-      for (i in 1:length(self$soilModData$soilProfile$soilLayers)) {
-        if (self$soilModData$tDat$transp[t] != 0) {
-          self$soilModData$soilProfile$soilLayers[[i]] <- 
-            private$.TranspCalcFun(self$soilModData$soilProfile$soilLayers[[i]], 
-                                   self$soilModData$tDat$transp[t])
+    execute = function(t) {
+      for (i in 1:length(self$soilModData$soilProfile$soil_layers)) {
+        if (self$soilModData$t_dat$PT[t] != 0) {
+          self$soilModData$soilProfile$soil_layers[[i]] <- 
+            private$.transpCalcFun(self$soilModData$soilProfile$soil_layers[[i]], 
+                                   self$soilModData$t_dat$PT[t])
         } else {
-          self$soilModData$soilProfile$soilLayers[[i]]$transp <- 0
+          self$soilModData$soilProfile$soil_layers[[i]]$AT <- 0
         }
       }
     },
     
-    Update = function(t) {
-      self$soilModData$tDat$transp[t] <- 
-        rbindlist(self$soilModData$soilProfile$soilLayers)$transp %>% 
+    update = function(t) {
+      self$soilModData$t_dat$AT[t] <- 
+        rbindlist(self$soilModData$soilProfile$soil_layers)$AT %>% 
         sum()
     }
   ),
   
   private = list(
-    .TranspCalcFun = function(soilLayer, transp) {
-      et <- transp * soilLayer$rootDepth
-      if (et >= soilLayer$wp) {
-        soilLayer$transp <- et
+    .transpCalcFun = function(soil_layer, PT) {
+      AT <- PT * soil_layer$root_frac
+      new_vwc <- soil_layer$vwc - AT / soil_layer$depth
+      if (new_vwc >= soil_layer$wp) {
+        soil_layer$AT <- AT
+        soil_layer$vwc <- new_vwc
       } else {
-        soilLayer$transp <- et - wp
+        soil_layer$AT <- soil_layer$vwc - soil_layer$wp * soil_layer$depth
+        soil_layer$vwc <- soil_layer$wp
       }
-      soilLayer$vwc <- soilLayer$vwc - soilLayer$transp / soilLayer$depth
-      return(soilLayer)
+      return(soil_layer)
     }
   )
 )

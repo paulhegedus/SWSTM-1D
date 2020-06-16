@@ -19,17 +19,17 @@ library(DescTools)
 library(data.table)
 
 # Check Dependencies ---------------------------
-CheckForModelReqs <- function(modPath, ioPath) {
-  if (!file.exists(paste0(modPath, "/modules"))) {
+checkForModelReqs <- function(mod_path, io_path) {
+  if (!file.exists(paste0(mod_path, "/modules"))) {
     stop("Path to 'modules' empty.")
   }
-  if (!file.exists(paste0(ioPath, "/inputs"))) {
+  if (!file.exists(paste0(io_path, "/inputs"))) {
     stop("Path to 'inputs' empty.")
   } else {
-    if (!file.exists(paste0(ioPath, "/inputs/tIn_dat.csv"))) {
+    if (!file.exists(paste0(io_path, "/inputs/tIn_dat.csv"))) {
       stop("Time level inputs ('tIn_dat.csv') not found.")
     }
-    if (!file.exists(paste0(ioPath, "/inputs/zIn_dat.csv"))) {
+    if (!file.exists(paste0(io_path, "/inputs/zIn_dat.csv"))) {
       stop("Depth (t=0) level inputs ('zIn_dat.csv') not found.")
     }
   }
@@ -44,29 +44,29 @@ SWSTM1D <- R6Class(
   "SWSTM1D", 
   public = list(
     soilModData = NULL,  
-    soilModList = NULL,  
-    opList = NULL,  
-    modsDataLoc = NULL,
-    opInts = NULL,  
+    soil_mod_list = NULL,  
+    op_list = NULL,  
+    mods_data_loc = NULL,
+    op_ints = NULL,  
     
-    initialize = function(modPath, 
-                          ioPath, 
-                          tInName, 
-                          zInName, 
+    initialize = function(mod_path, 
+                          io_path, 
+                          t_dat_name, 
+                          z_dat_name, 
                           mods_select, 
                           op_select, 
                           mods_data_loc,
                           op_ints) {
-      tDat <- fread(paste0(ioPath, "/inputs/", tInName, ".csv")) %>%
+      t_dat <- fread(paste0(io_path, "/inputs/", t_dat_name, ".csv")) %>%
         as.data.frame()
-      zDat <- fread(paste0(ioPath, "/inputs/", zInName, ".csv")) %>%
+      z_dat <- fread(paste0(io_path, "/inputs/", z_dat_name, ".csv")) %>%
         as.data.frame()
       # 1) SoilModData class object has to be initialized first
       self$soilModData <- SoilModData$new(
-        tDat = tDat,  
-        zDat = zDat, 
-        modPath = modPath,  
-        ioPath = ioPath 
+        t_dat = t_dat,  
+        z_dat = z_dat, 
+        mod_path = mod_path,  
+        io_path = io_path 
       )
       # 2) Lists for modules & outputters have to be generated from user input
       stopifnot(
@@ -84,86 +84,85 @@ SWSTM1D <- R6Class(
         op_select <-  as.character(op_select) 
       }
       #mods_data_loc <- lapply(mods_data_loc, as.character) 
-      self$soilModList <- as.list(mods_select) %>% 
+      self$soil_mod_list <- as.list(mods_select) %>% 
         `names<-`(mods_select) 
-      self$modsDataLoc <- mods_data_loc %>% 
+      self$mods_data_loc <- mods_data_loc %>% 
         `names<-`(mods_data_loc) 
-      self$opList <- as.list(op_select) %>% 
+      self$op_list <- as.list(op_select) %>% 
         `names<-`(op_select) 
-      self$opInts <- op_ints
+      self$op_ints <- op_ints
     }, 
-    SetUp = function() {
+    setUp = function() {
       # 1) The 'outputs' folder has to be created based on initial user inputs
-      private$.MakeOutputsFolder()
+      private$.makeOutputsFolder()
       # 2) Modules have to be loaded and initialized from the 'modules' folder
-      self$soilModList <- mapply(
-        private$.LoadModules,
-        self$soilModList,
-        self$modsDataLoc
+      self$soil_mod_list <- mapply(
+        private$.loadModules,
+        self$soil_mod_list,
+        self$mods_data_loc
       )
       # 3) SoilModData structures have to be updated based on loaded modules
-      lapply(self$soilModList, private$.SetUpModules)
+      lapply(self$soil_mod_list, private$.setUpModules)
       # 4) SoilProfile made after the SoilModData object is modified 
-      self$soilModData$BuildSoilProfile()
+      self$soilModData$buildSoilProfile()
       # 5) Outputters loaded after modules built
-      self$opList <- mapply(
-        private$.LoadOutputters,
-        self$opList, 
-        self$opInts
+      self$op_list <- mapply(
+        private$.loadOutputters,
+        self$op_list, 
+        self$op_ints
       )
     }, 
-    Execute = function() {
-      for (t in 1:nrow(self$soilModData$tDat)) {
-        lapply(self$soilModList, private$.RunModules, t)
-        lapply(self$opList, private$.RunZToutputters, t)
-        lapply(self$opList, private$.RunToutputters, t)
+    execute = function() {
+      for (t in 1:nrow(self$soilModData$t_dat)) {
+        lapply(self$soil_mod_list, private$.runModules, t)
+        lapply(self$op_list, private$.runZToutputters, t)
+        lapply(self$op_list, private$.runToutputters, t)
       }
     }, 
-    Output = function() {
-      lapply(self$opList, private$.CloseConnections)
+    output = function() {
+      lapply(self$op_list, private$.closeConnections)
     }
   ), 
   
   private = list(
-    .MakeOutputsFolder = function() {
-      owd <- paste0(self$soilModData$ioPath, "/outputs") 
+    .makeOutputsFolder = function() {
+      owd <- paste0(self$soilModData$io_path, "/outputs") 
       if (!file.exists(owd)) { 
         dir.create(owd)
       } 
     },
-    .LoadModules = function(module, modDataLoc) {
+    .loadModules = function(module, mod_data_loc) {
       # 1) Have to source file
-      source(paste0(self$soilModData$modPath, "/modules/", module, ".R"))
+      source(paste0(self$soilModData$mod_path, "/modules/", module, ".R"))
       # 2) Have to initialize module based on SoilModData
-      module <- eval(
-        parse(
-          text = paste0(module, "$new(self$soilModData, modDataLoc)")
-        )
-      )
+      init_text <- ifelse(is.na(mod_data_loc),
+                         "$new(self$soilModData)",
+                         "$new(self$soilModData, mod_data_loc)")
+      module <- eval(parse(text = paste0(module, init_text)))
       return(module)
     },  
-    .SetUpModules = function(module) {
-      module$SetUp() # module specific setup
+    .setUpModules = function(module) {
+      module$setUp() # module specific setup
     },
-    .LoadOutputters = function(outputter, ints) {
+    .loadOutputters = function(outputter, ints) {
       # 1) Have to source file
-      source(paste0(self$soilModData$modPath, "/outputters/", outputter, ".R"))
+      source(paste0(self$soilModData$mod_path, "/outputters/", outputter, ".R"))
       # 2) Have to initialize outputter based on SoilModData
       outputter <- eval(parse(text = paste0(outputter, "$new(self$soilModData, ints)")))
       return(outputter)
     }, 
-    .RunModules = function(module, t) { 
-      module$Execute(t) 
-      module$Update(t) 
+    .runModules = function(module, t) { 
+      module$execute(t) 
+      module$update(t) 
     },
-    .RunZToutputters = function(module_op, t) { 
-      module_op$Write_z(t) 
+    .runZToutputters = function(module_op, t) { 
+      module_op$writeZ(t) 
     },
-    .RunToutputters = function(module_op, t) { 
-      module_op$Write_t(t) 
+    .runToutputters = function(module_op, t) { 
+      module_op$writeT(t) 
     },
-    .CloseConnections = function(outputter) {
-      outputter$CloseCon()
+    .closeConnections = function(outputter) {
+      outputter$closeCon()
     }
   )
 )
@@ -176,38 +175,38 @@ SWSTM1D <- R6Class(
 SoilModData <- R6Class(
   classname = "SoilModData", 
   public = list(
-    tDat = NULL,  
-    zDat = NULL,   
+    t_dat = NULL,  
+    z_dat = NULL,   
     soilProfile = NULL, 
-    modPath = NULL,  
-    ioPath = NULL,  
+    mod_path = NULL,  
+    io_path = NULL,  
     
-    initialize = function(tDat, zDat, modPath, ioPath) {
+    initialize = function(t_dat, z_dat, mod_path, io_path) {
       stopifnot(
-        is.character(modPath), 
-        is.character(ioPath), 
-        is.data.frame(tDat),  
-        is.data.frame(zDat),  
-        any(grepl("time", names(tDat))), 
-        any(grepl("time", names(zDat))),  
-        any(grepl("depth", names(zDat))),  
-        is.numeric(tDat$time), 
-        is.numeric(zDat$time),  
-        is.numeric(zDat$depth),  
-        all(zDat$depth > 0),  
-        length(unique(zDat$time)) == 1,  
-        unique(zDat$time) == 0 # Checks that user knows what they're inputting
+        is.character(mod_path), 
+        is.character(io_path), 
+        is.data.frame(t_dat),  
+        is.data.frame(z_dat),  
+        any(grepl("time", names(t_dat))), 
+        any(grepl("time", names(z_dat))),  
+        any(grepl("depth", names(z_dat))),  
+        is.numeric(t_dat$time), 
+        is.numeric(z_dat$time),  
+        is.numeric(z_dat$depth),  
+        all(z_dat$depth > 0),  
+        length(unique(z_dat$time)) == 1,  
+        unique(z_dat$time) == 0 # Checks that user knows what they're inputting
       ) 
-      self$tDat <- tDat
-      self$zDat <- zDat
-      self$modPath <- modPath
-      self$ioPath <- ioPath
+      self$t_dat <- t_dat
+      self$z_dat <- z_dat
+      self$mod_path <- mod_path
+      self$io_path <- io_path
       
-      self$zDat$z <- cumsum(self$zDat$depth)
+      self$z_dat$z <- cumsum(self$z_dat$depth)
     }, 
     
     BuildSoilProfile = function() {
-      self$soilProfile <- SoilProfile$new(self$zDat)
+      self$soilProfile <- SoilProfile$new(self$z_dat)
     }
   )#, 
   
@@ -218,11 +217,11 @@ SoilModData <- R6Class(
 SoilProfile <- R6Class(
   "SoilProfile", 
   public = list( 
-    soilLayers = NULL, 
+    soil_layers = NULL, 
     
-    initialize = function(zDat) { 
-      zDat$time <- NULL
-      self$soilLayers <- apply(zDat, 1, as.list)
+    initialize = function(z_dat) { 
+      z_dat$time <- NULL
+      self$soil_layers <- apply(z_dat, 1, as.list)
     }
   ) 
 ) 
