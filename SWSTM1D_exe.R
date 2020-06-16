@@ -34,17 +34,10 @@ module_list <- list(
        crop = "wheat"),
   list(module = "ET_Partition_T",
        t_dat = "ET_inputs"),
-  list(module = "TranspModule_PET_noLim",
+  list(module = "TranspModule_PT_noLim",
        z_dat = "TranspModule_wp")
 )
-# mods_select <- c("DrainModuleFC",
-#                  "RootModule_Dist", # OR  RootModule_Length
-#                  "ET_Partition_T", # Partition all ET to T
-#                  "TranspModule_PET_noLim") # OR TranspModule_AET
-# mods_data_loc <- list("DrainModuleFC_in",
-#                       "RootModule_root_depths",
-#                       "ET_inputs", # AET or PET, partitioned b/w E and T
-#                       "TranspModule_wp") # NA w/ AET
+
 # Outputter names
 outputter_list <- list(
   list(op = "SWSTM1D_OP",

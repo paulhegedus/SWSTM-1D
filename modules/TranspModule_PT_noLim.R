@@ -1,4 +1,4 @@
-## Title: TranspModule_PET_noLim
+## Title: TranspModule_PT_noLim
 ## 
 ## Interface/Abstraction: This object follows the "modules" 
 ## interface consisting of the methods;SetUp(), Execute(), Update()
@@ -12,8 +12,8 @@
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
 # TranspModule_PET_noLim Class Generator ---------------------------
-TranspModule_PET_noLim <- R6Class(
-  classname="TranspModule_PET_noLim",
+TranspModule_PT_noLim <- R6Class(
+  classname="TranspModule_PT_noLim",
   public = list(
     soilModData = NULL, 
     mod_data_loc = NULL,
