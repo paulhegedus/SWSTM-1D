@@ -16,31 +16,43 @@
 
 # User Inputs ---------------------------
 # Need to provide the path to model files location (where 'modules' is)
-mod_path <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
+mod_path <- 
+  "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
 # Need to provide the path to location of 'inputs' folder; 
 # outputs put here (this does not need to be same as model)
-io_path <- "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
+io_path <- 
+  "/Users/PaulBriggs/Box/Hegedus/Dissertation/Chapter3/SWSTM1D/dev/SWSTM-1D"
 # Filename of t or z inputs and the time step intervals to output data
 t_dat_name <- "tIn_dat"
 z_dat_name <- "zIn_dat"
 # Module names
-mods_select <- c("DrainModuleFC",
-                 "RootModule_Dist", # OR  RootModule_Length
-                 "ET_Partition_T", # Partition all ET to T
-                 "TranspModule_PET_noLim") # OR TranspModule_AET
-mods_data_loc <- list("DrainModuleFC_in",
-                      "RootModule_root_depths",
-                      "ET_inputs", # AET or PET, partitioned b/w E and T
-                      "TranspModule_wp") # NA w/ AET
-# Outputter names
-op_select <- c("SWSTM1D_OP") 
-# TODO: Handle NULL for no outputters
-# Intervals to output from each outputter. Must be same
-# order as 'op_select'. First element is for 'z' outputs,
-# second element is for 't' outputs.
-op_ints <- list(
-  c(1,1) # SWSTM1D_OP
+module_list <- list(
+  list(module = "DrainModuleFC",
+       z_dat = "DrainModuleFC_in"),
+  list(module = "RootModule_Dist",
+       t_dat = "RootModule_root_depths",
+       crop = "wheat"),
+  list(module = "ET_Partition_T",
+       t_dat = "ET_inputs"),
+  list(module = "TranspModule_PT_noLim",
+       z_dat = "TranspModule_wp")
 )
+
+# Outputter names
+outputter_list <- list(
+  list(op = "SWSTM1D_OP",
+       t_int = 1,
+       z_int = 1)
+)
+
+# op_select <- c("SWSTM1D_OP") 
+# # TODO: Handle NULL for no outputters
+# # Intervals to output from each outputter. Must be same
+# # order as 'op_select'. First element is for 'z' outputs,
+# # second element is for 't' outputs.
+# op_ints <- list(
+#   c(1,1) # SWSTM1D_OP
+# )
 
 # Source Code ---------------------------
 source(paste0(mod_path, "/SWSTM1D_sourceCode.R"))
@@ -56,10 +68,8 @@ swstm1d <- SWSTM1D$new(
   io_path = io_path,
   t_dat_name = t_dat_name,
   z_dat_name = z_dat_name,
-  mods_select = mods_select,
-  op_select = op_select,
-  mods_data_loc = mods_data_loc,
-  op_ints = op_ints
+  module_list = module_list,
+  outputter_list = outputter_list
 )
 
 # SetUp Model ---------------------------

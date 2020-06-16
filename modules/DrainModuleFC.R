@@ -19,20 +19,20 @@ DrainModuleFC <- R6Class(
     soilModData = NULL, 
     mod_data_loc = NULL,
 
-    initialize = function(soilModData, mod_data_loc) {
+    initialize = function(soilModData, module_item) {
       stopifnot(
         exists("t_dat", soilModData),
         exists("z_dat", soilModData),
         exists("io_path", soilModData),
         file.exists(paste0(soilModData$io_path, 
                            "/inputs/", 
-                           mod_data_loc,".csv")),
+                           module_item$z_dat,".csv")),
         !is.null(soilModData$z_dat$vwc),
         is.numeric(soilModData$z_dat$vwc), 
         all(soilModData$z_dat$vwc > 0 & soilModData$z_dat$vwc < 1)
       ) 
       self$soilModData <- soilModData
-      self$mod_data_loc <- mod_data_loc
+      self$mod_data_loc <- module_item$z_dat
     },
     
     setUp = function() {

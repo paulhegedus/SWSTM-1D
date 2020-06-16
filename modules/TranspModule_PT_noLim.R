@@ -1,4 +1,4 @@
-## Title: TranspModule_PET_noLim
+## Title: TranspModule_PT_noLim
 ## 
 ## Interface/Abstraction: This object follows the "modules" 
 ## interface consisting of the methods;SetUp(), Execute(), Update()
@@ -12,26 +12,26 @@
 ##
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@     
 # TranspModule_PET_noLim Class Generator ---------------------------
-TranspModule_PET_noLim <- R6Class(
-  classname="TranspModule_PET_noLim",
+TranspModule_PT_noLim <- R6Class(
+  classname="TranspModule_PT_noLim",
   public = list(
     soilModData = NULL, 
     mod_data_loc = NULL,
     
-    initialize = function(soilModData, mod_data_loc) {
+    initialize = function(soilModData, module_item) {
       stopifnot(
         exists("t_dat", soilModData),
         exists("z_dat", soilModData),
         exists("io_path", soilModData),
         !is.null(soilModData$z_dat$vwc),
         is.numeric(soilModData$z_dat$vwc), 
-        all(soilModData$z_dat$vwc > 0 & soilModData$z_dat$vwc < 1)
+        all(soilModData$z_dat$vwc > 0 & soilModData$z_dat$vwc < 1),
+        file.exists(paste0(soilModData$io_path, "/inputs/", 
+                           module_item$z_dat,".csv"))
       )
-      stopifnot(
-        file.exists(paste0(soilModData$io_path, "/inputs/", mod_data_loc,".csv"))
-      )
+      
       self$soilModData <- soilModData
-      self$mod_data_loc <- mod_data_loc
+      self$mod_data_loc <- module_item$z_dat
     },
     
     setUp = function() {
