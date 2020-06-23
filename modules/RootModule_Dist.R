@@ -88,13 +88,6 @@ RootModule_Dist <- R6Class(
                           1,
                           self$fanEtAlMod$fanCalc(layer_depth, max_root_depth))
       return(root_frac)
-    },
-    # FIXME: Hardcoded to wheat
-    .fanEtAlCalc = function(d, dmax, da = 17.2, c = -1.286) {
-      comp1 <- 1 / (1 + (d / da)^c)
-      comp2 <- 1 - 1 / (1 + (dmax / da)^c) 
-      comp3 <- d / dmax
-      return(comp1 + comp2 * comp3)
     }
   )
 )

@@ -60,12 +60,7 @@ TranspModule_PT_noLim <- R6Class(
       # 2) Input data has to be modified
       self$soilModData$t_dat$AT <- 0
       self$soilModData$z_dat$AT <- 0
-
-      ifelse(
-        any(self$soilModData$t_dat$root_depth > max(self$soilModData$z_dat$z)),
-        {self$soilModData$t_dat$AT_sub_soil <- 0},
-        invisible()
-      )
+      self$soilModData$t_dat$AT_sub_soil <- 0
     },
     
     execute = function(t) {

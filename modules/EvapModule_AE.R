@@ -18,6 +18,7 @@ EvapModule_AE <- R6Class(
   classname="EvapModule_AE",
   public = list(
     soilModData = NULL, 
+    max_evap_depth = NULL,
     
     initialize = function(soilModData, module_item = NULL) {
       stopifnot(
@@ -26,9 +27,11 @@ EvapModule_AE <- R6Class(
         exists("io_path", soilModData),
         !is.null(soilModData$z_dat$vwc),
         is.numeric(soilModData$z_dat$vwc), 
-        all(soilModData$z_dat$vwc > 0 & soilModData$z_dat$vwc < 1)
+        all(soilModData$z_dat$vwc > 0 & soilModData$z_dat$vwc < 1),
+        is.numeric(module_item$max_evap_depth)
       )
       self$soilModData <- soilModData
+      self$max_evap_depth <- module_item$max_evap_dept
     },
     
     setUp = function() {
@@ -43,7 +46,7 @@ EvapModule_AE <- R6Class(
       if (self$soilModData$t_dat$PE[t] != 0) {
         evap_budget <- self$soilModData$t_dat$PE[t]
         for (i in 1:length(self$soilModData$soilProfile$soil_layers)) {
-          if (evap_budget > 0) {
+          if (evap_budget > 0 & i <= self$max_evap_depth) {
             self$soilModData$soilProfile$soil_layers[[i]] <- 
               private$.evapCalcFun(self$soilModData$soilProfile$soil_layers[[i]],
                                    evap_budget)

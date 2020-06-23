@@ -31,24 +31,36 @@ z_dat_name <- "zIn_dat"
 module_list <- list(
   list(module = "DrainModuleFC",
        z_dat = "fc_dat"),
-  # list(module = "RootModule_Dist",
-  #      t_dat = "RootModule_root_depths",
-  #      crop = "wheat"),
+   list(module = "RootModule_Dist",
+        t_dat = "RootModule_root_depths",
+        crop = "wheat"),
   list(module = "ET_Partition_E",
        t_dat = "ET_inputs"),
   # list(module = "TranspModule_AT"),
   # list(module = "TranspModule_PT_noLim",
   #      z_dat = "wp_data"),
-  #list(module = "EvapModule_AE"),
+  list(module = "EvapModule_AE",
+       max_evap_depth = 5),
   list(module = "EvapModule_PE",
-       z_dat = "wp_data") # wp_data not needed if passed in w/transp mod
+       z_dat = "wp_data",
+       max_evap_depth = 5) # wp_data not needed if passed in w/transp mod
 )
 # Outputter names
- outputter_list <- NULL # list(
-#   list(op = "SWSTM1D_OP",
-#        t_int = 1,
-#        z_int = 1)
-# )
+outputter_list <- list( # NULL 
+ list(op = "SWSTM1D_OP",
+      t_int = 1,
+      z_int = 1),
+ list(op = "DrainModule_Figs"),
+ list(op = "TranspModule_Figs"),
+ list(op = "EvapModule_Figs")
+)
+
+ # deep perc x time - bar - DrainModule_Figs
+ # precip x time - bar - SWSTM1D_OP
+ # transp x time - bar - TranspModule_Figs
+ # evap x time - bar - EvapModule_Figs
+ # MB I/O - line - SWSTM1D_OP
+ # MB partition - line x color - SWSTM1D_OP
 
 # Source Code ---------------------------
 source(paste0(mod_path, "/SWSTM1D_sourceCode.R"))
