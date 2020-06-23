@@ -50,13 +50,14 @@ outputter_list <- list( # NULL
  list(op = "SWSTM1D_OP",
       t_int = 1,
       z_int = 1),
- list(op = "DrainModule_Figs"),
- list(op = "TranspModule_Figs"),
- list(op = "EvapModule_Figs")
+ list(op = "DrainModule_Figs",
+      op_ints = 1),
+ list(op = "TranspModule_Figs",
+      op_ints = 1),
+ list(op = "EvapModule_Figs",
+      op_ints = 1)
 )
 
- # deep perc x time - bar - DrainModule_Figs
- # transp x time - bar - TranspModule_Figs
  # evap x time - bar - EvapModule_Figs
  
 # Source Code ---------------------------

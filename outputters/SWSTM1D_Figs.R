@@ -23,12 +23,14 @@ SWSTM1D_Figs <- R6Class(
     soilModData = NULL,
     z_con = NULL,
     t_con = NULL,
+    op_ints = NULL,
 
     initialize = function(soilModData, op_list) {
       stopifnot(
         exists("io_path", soilModData)
       ) 
       self$soilModData <- soilModData
+      self$op_ints <- op_list$op_ints
       
       # Write initial z and t level info & open connection
       self$z_con <- paste0(self$soilModData$io_path, "/outputs/z_dat.csv")
@@ -43,7 +45,10 @@ SWSTM1D_Figs <- R6Class(
       ## MB Partition - Line x Color
       
       
-      ## Precip x Time - Line
+      ## Precip x Time - Bar
+      
+      
+      ## VWC x Time - Bar
       
       
     },
