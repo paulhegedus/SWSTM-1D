@@ -4,6 +4,8 @@
 ## interface consisting of the methods; Write_z and Write_t
 ## Write_z: write depth (z) level data at each timestep (t)
 ## Write_t: writes t level data at each timestep (t)
+## runOutput: does something
+## closeCon: closes any open connections
 ##
 ## Description: This class is the general outputter for the SWSTM-1D model.
 ## The Outputter class generator makes a outputter object that saves
@@ -85,6 +87,7 @@ SWSTM1D_OP <- R6Class(
                     sep = ",")
       }
     },
+    runOutput = function() {},
     closeCon = function() {
       close(self$z_con)
       close(self$t_con)

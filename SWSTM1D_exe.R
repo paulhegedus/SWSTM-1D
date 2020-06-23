@@ -56,12 +56,9 @@ outputter_list <- list( # NULL
 )
 
  # deep perc x time - bar - DrainModule_Figs
- # precip x time - bar - SWSTM1D_OP
  # transp x time - bar - TranspModule_Figs
  # evap x time - bar - EvapModule_Figs
- # MB I/O - line - SWSTM1D_OP
- # MB partition - line x color - SWSTM1D_OP
-
+ 
 # Source Code ---------------------------
 source(paste0(mod_path, "/SWSTM1D_sourceCode.R"))
 

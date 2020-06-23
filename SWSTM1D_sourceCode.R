@@ -97,6 +97,7 @@ SWSTM1D <- R6Class(
       }
     }, 
     output = function() {
+      lapply(self$op_list, private$.runOutput)
       lapply(self$op_list, private$.closeConnections)
     }
   ), 
@@ -139,6 +140,9 @@ SWSTM1D <- R6Class(
     },
     .closeConnections = function(outputter) {
       outputter$closeCon()
+    },
+    .runOutput = function(outputter) {
+      outputter$runOutput()
     }
   )
 )
