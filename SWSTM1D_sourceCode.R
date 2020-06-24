@@ -25,14 +25,7 @@ checkForModelReqs <- function(mod_path, io_path) {
   }
   if (!file.exists(paste0(io_path, "/inputs"))) {
     stop("Path to 'inputs' empty.")
-  } else {
-    if (!file.exists(paste0(io_path, "/inputs/tIn_dat.csv"))) {
-      stop("Time level inputs ('tIn_dat.csv') not found.")
-    }
-    if (!file.exists(paste0(io_path, "/inputs/zIn_dat.csv"))) {
-      stop("Depth (t=0) level inputs ('zIn_dat.csv') not found.")
-    }
-  }
+  } 
 }
 
 # SWSTM1D Class Generator ---------------------------
