@@ -90,8 +90,8 @@ SWSTM1D <- R6Class(
       }
     }, 
     output = function() {
-      lapply(self$op_list, private$.runOutputs)
       lapply(self$op_list, private$.closeConnections)
+      lapply(self$op_list, private$.runOutputs)
     }
   ), 
   
@@ -170,13 +170,13 @@ SoilModData <- R6Class(
         length(unique(z_dat$time)) == 1,  
         unique(z_dat$time) == 0 # Checks that user knows what they're inputting
       ) 
-      names(t_dat)[grep("thickness",names(t_dat))] <- "thiccness"
+      names(z_dat)[grep("thickness",names(z_dat))] <- "thiccness"
       self$t_dat <- t_dat
       self$z_dat <- z_dat
       self$mod_path <- mod_path
       self$io_path <- io_path
       
-      self$z_dat$z <- cumsum(self$z_dat$thickness)
+      self$z_dat$z <- cumsum(self$z_dat$thiccness)
     }, 
     
     buildSoilProfile = function() {

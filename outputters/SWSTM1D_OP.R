@@ -35,7 +35,7 @@ SWSTM1D_OP <- R6Class(
       self$soilModData <- soilModData
       self$z_int <- op_list$z_int
       self$t_int <- op_list$t_int
-      
+      browser()
       # Write initial z and t level info & open connection
       z_dat <- do.call(
         rbind.data.frame,
@@ -45,16 +45,15 @@ SWSTM1D_OP <- R6Class(
       fwrite(z_dat, paste0(self$soilModData$io_path, "/outputs/z_dat.csv"))
       
       t_dat <- self$soilModData$t_dat[1, ]
-      t_dat[1, ] <- NA
-      t_dat[1, "time"] <- 0
+      t_dat[1, ] <- rep(0, ncol(t_dat))
       fwrite(t_dat, paste0(self$soilModData$io_path, "/outputs/t_dat.csv"))
       
       self$z_con <- file(description = paste0(self$soilModData$io_path, 
                                              "/outputs/z_dat.csv"),
-                        open = "a")
+                        open = "at")
       self$t_con <- file(description = paste0(self$soilModData$io_path, 
                                              "/outputs/t_dat.csv"),
-                        open = "a")
+                        open = "at")
     },
     writeZ = function(t) {
       op <- ifelse(t > self$t_int,
@@ -66,11 +65,16 @@ SWSTM1D_OP <- R6Class(
           lapply(self$soilModData$soilProfile$soil_layers, as.data.frame)
         )
         z_dat$time <- t
+        # for (i in 1:nrow(z_dat)) {
+        #   
+        #   
+        # }
         write.table(z_dat, 
                     self$z_con, 
                     row.names = FALSE, 
                     col.names = FALSE, 
-                    sep = ",")
+                    sep = ",",
+                    append = TRUE)
       }
     },
     writeT = function(t) {

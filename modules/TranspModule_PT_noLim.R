@@ -16,7 +16,7 @@ TranspModule_PT_noLim <- R6Class(
   classname="TranspModule_PT_noLim",
   public = list(
     soilModData = NULL, 
-    mod_data_loc = NULL,
+    mod_dat_name = NULL,
     
     initialize = function(soilModData, module_item) {
       stopifnot(
@@ -25,23 +25,20 @@ TranspModule_PT_noLim <- R6Class(
         exists("io_path", soilModData),
         !is.null(soilModData$z_dat$vwc),
         is.numeric(soilModData$z_dat$vwc), 
-        all(soilModData$z_dat$vwc > 0 & soilModData$z_dat$vwc < 1)
+        all(soilModData$z_dat$vwc > 0 & soilModData$z_dat$vwc < 1),
+        file.exists(paste0(soilModData$io_path, "/inputs/", 
+                           module_item$z_dat,".csv"))
+        #any(grepl("z_dat", names(module_item)))
       )
-      if (grepl("z_dat", names(module_item))) {
-        stopifnot(
-          file.exists(paste0(soilModData$io_path, "/inputs/", 
-                             module_item$z_dat,".csv"))
-        )
-        self$mod_data_loc <- module_item$z_dat
-      } 
+      self$mod_dat_name <- module_item$z_dat
       self$soilModData <- soilModData
     },
     
     setUp = function() {
-      if (!is.null(self$mod_data_loc)) {
+      if (!is.null(self$mod_dat_name)) {
         dat_in <- fread(paste0(self$soilModData$io_path, 
                                "/inputs/", 
-                               self$mod_data_loc,".csv")) %>%
+                               self$mod_dat_name,".csv")) %>%
           as.data.frame()
         stopifnot(
           is.data.frame(dat_in),
@@ -52,7 +49,7 @@ TranspModule_PT_noLim <- R6Class(
         self$soilModData$z_dat$wp <- dat_in$wp
       }
       stopifnot(
-        !is.null(self$soilModData$z_dat$wp)
+        !is.null(self$soilModData$z_dat$wp),
         !is.null(self$soilModData$t_dat$root_depth),
         !is.null(self$soilModData$t_dat$PT)
       )

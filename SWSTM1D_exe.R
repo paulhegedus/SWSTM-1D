@@ -36,11 +36,15 @@ module_list <- list(
         crop = "wheat"),
   list(module = "ET_Partition_E",
        t_dat = "ET_inputs"),
-  # list(module = "TranspModule_AT"),
+  # list(module = "ET_Partition_T",
+  #     t_dat = "ET_inputs"),
+  # list(module = "ET_Partition_ET",
+  #     t_dat = "ET_inputs"),
+  # list(module = "TranspModule_AT")
   # list(module = "TranspModule_PT_noLim",
   #      z_dat = "wp_data"),
-  list(module = "EvapModule_AE",
-       max_evap_depth = 5),
+  # list(module = "EvapModule_AE",
+  #      max_evap_depth = 5),
   list(module = "EvapModule_PE",
        z_dat = "wp_data",
        max_evap_depth = 5) # wp_data not needed if passed in w/transp mod
@@ -48,14 +52,14 @@ module_list <- list(
 # Outputter names
 outputter_list <- list( # NULL 
  list(op = "SWSTM1D_OP",
-      t_int = 1,
-      z_int = 1),
+      t_int = 1, # time intervals to print t level data
+      z_int = 1), # time intervals to print z level data
  list(op = "DrainModule_Figs",
-      op_ints = 1),
- list(op = "TranspModule_Figs",
-      op_ints = 1),
- list(op = "EvapModule_Figs",
-      op_ints = 1)
+      op_ints = 1)#, # intervals for plotting?
+ # list(op = "TranspModule_Figs",
+ #      op_ints = 1),
+ # list(op = "EvapModule_Figs",
+ #      op_ints = 1)
 )
 
  # evap x time - bar - EvapModule_Figs
@@ -85,7 +89,6 @@ swstm1d$setUp()
 swstm1d$execute() 
 
 # Save Model Simulation Outputs ---------------------------
-swstm1d$output() %>%
-  invisible()
+swstm1d$output()
 
 proc.time() - pc
