@@ -35,7 +35,6 @@ SWSTM1D_OP <- R6Class(
       self$soilModData <- soilModData
       self$z_int <- op_list$z_int
       self$t_int <- op_list$t_int
-      browser()
       # Write initial z and t level info & open connection
       z_dat <- do.call(
         rbind.data.frame,
@@ -65,16 +64,9 @@ SWSTM1D_OP <- R6Class(
           lapply(self$soilModData$soilProfile$soil_layers, as.data.frame)
         )
         z_dat$time <- t
-        # for (i in 1:nrow(z_dat)) {
-        #   
-        #   
-        # }
-        write.table(z_dat, 
-                    self$z_con, 
-                    row.names = FALSE, 
-                    col.names = FALSE, 
-                    sep = ",",
-                    append = TRUE)
+        for (i in 1:nrow(z_dat)) {
+          write(toString(z_dat[i,]), file = self$z_con, append = TRUE, sep = ",")
+        }
       }
     },
     writeT = function(t) {
@@ -84,11 +76,7 @@ SWSTM1D_OP <- R6Class(
       if (op == as.integer(op)) {
         t_dat <- self$soilModData$t_dat[t, ] %>% 
           as.data.frame()
-        write.table(t_dat, 
-                    self$t_con, 
-                    row.names = FALSE, 
-                    col.names = FALSE, 
-                    sep = ",")
+        write(toString(t_dat), file = self$t_con, append = TRUE, sep = ",")
       }
     },
     runOutput = function() {},
