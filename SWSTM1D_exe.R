@@ -31,31 +31,35 @@ z_dat_name <- "zIn_dat"
 module_list <- list(
   list(module = "DrainModuleFC",
        z_dat = "fc_dat"),
-   list(module = "RootModule_Dist",
-        t_dat = "RootModule_root_depths",
-        crop = "wheat"),
-  list(module = "ET_Partition_E",
-       t_dat = "ET_inputs"),
+  list(module = "RootModule_Dist",
+       t_dat = "RootModule_root_depths",
+       crop = "wheat"),
+  # list(module = "ET_Partition_E",
+  #      t_dat = "ET_inputs"),
   # list(module = "ET_Partition_T",
   #     t_dat = "ET_inputs"),
-  # list(module = "ET_Partition_ET",
-  #     t_dat = "ET_inputs"),
-  # list(module = "TranspModule_AT")
+  list(module = "ET_Partition_ET_explicit", # E and T explicit 
+      t_dat = "ET_inputs_explicit"), # pre partitioned E and T
+  list(module = "TranspModule_AT"), 
   # list(module = "TranspModule_PT_noLim",
   #      z_dat = "wp_data"),
-  # list(module = "EvapModule_AE",
-  #      max_evap_depth = 5),
-  list(module = "EvapModule_PE",
-       z_dat = "wp_data",
-       max_evap_depth = 5) # wp_data not needed if passed in w/transp mod
+  list(module = "EvapModule_AE",
+       max_evap_depth = 5)#,
+  # list(module = "EvapModule_PE",
+  #      z_dat = "wp_data",
+  #      max_evap_depth = 5) # wp_data not needed if passed in w/transp mod
 )
 # Outputter names
 outputter_list <- list( # NULL 
  list(op = "SWSTM1D_OP",
       t_int = 1, # time intervals to print t level data
       z_int = 1), # time intervals to print z level data
- list(op = "DrainModule_Figs",
-      op_ints = 1)#, # intervals for plotting?
+ list(op = "SWSTM1D_Figs",
+      t_int = 1, 
+      z_int = 1), 
+ # list(op = "Precip_Figs"),
+ # list(op = "DrainModule_Figs",
+ #      op_ints = 1), # intervals for plotting?
  # list(op = "TranspModule_Figs",
  #      op_ints = 1),
  # list(op = "EvapModule_Figs",
@@ -89,6 +93,7 @@ swstm1d$setUp()
 swstm1d$execute() 
 
 # Save Model Simulation Outputs ---------------------------
-swstm1d$output()
+swstm1d$output() %>% 
+  invisible()
 
 proc.time() - pc

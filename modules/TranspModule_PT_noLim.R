@@ -55,8 +55,8 @@ TranspModule_PT_noLim <- R6Class(
       )
       
       # 2) Input data has to be modified
-      self$soilModData$t_dat$AT <- 0
-      self$soilModData$z_dat$AT <- 0
+      self$soilModData$t_dat$AT_soil_zone <- 0
+      self$soilModData$z_dat$AT_soil_zone <- 0
       self$soilModData$t_dat$AT_sub_soil <- 0
     },
     
@@ -67,14 +67,14 @@ TranspModule_PT_noLim <- R6Class(
             private$.transpCalcFun(self$soilModData$soilProfile$soil_layers[[i]], 
                                    self$soilModData$t_dat$PT[t])
         } else {
-          self$soilModData$soilProfile$soil_layers[[i]]$AT <- 0
+          self$soilModData$soilProfile$soil_layers[[i]]$AT_soil_zone <- 0
         }
       }
     },
     
     update = function(t) {
-      self$soilModData$t_dat$AT[t] <- 
-        rbindlist(self$soilModData$soilProfile$soil_layers)$AT %>% 
+      self$soilModData$t_dat$AT_soil_zone[t] <- 
+        rbindlist(self$soilModData$soilProfile$soil_layers)$AT_soil_zone %>% 
         sum()
     }
   ),
@@ -84,10 +84,10 @@ TranspModule_PT_noLim <- R6Class(
       AT <- PT * soil_layer$root_frac
       new_vwc <- soil_layer$vwc - AT / soil_layer$thiccness
       if (new_vwc >= soil_layer$wp) {
-        soil_layer$AT <- AT
+        soil_layer$AT_soil_zone <- AT
         soil_layer$vwc <- new_vwc
       } else {
-        soil_layer$AT <- soil_layer$vwc - soil_layer$wp * soil_layer$thiccness
+        soil_layer$AT_soil_zone <- soil_layer$vwc - soil_layer$wp * soil_layer$thiccness
         soil_layer$vwc <- soil_layer$wp
       }
       return(soil_layer)

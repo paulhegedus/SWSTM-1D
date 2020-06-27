@@ -34,8 +34,8 @@ TranspModule_AT <- R6Class(
         !is.null(self$soilModData$t_dat$root_depth),
         !is.null(self$soilModData$t_dat$PT)
       )
-      self$soilModData$t_dat$AT <- 0
-      self$soilModData$z_dat$AT <- 0
+      self$soilModData$t_dat$AT_soil_zone <- 0
+      self$soilModData$z_dat$AT_soil_zone <- 0
       self$soilModData$t_dat$AT_sub_soil <- 0
     },
     
@@ -46,19 +46,19 @@ TranspModule_AT <- R6Class(
             private$.transpCalcFun(self$soilModData$soilProfile$soil_layers[[i]], 
                                    self$soilModData$t_dat$PT[t])
         } else {
-          self$soilModData$soilProfile$soil_layers[[i]]$AT <- 0
+          self$soilModData$soilProfile$soil_layers[[i]]$AT_soil_zone <- 0
         }
       }
     },
     
     update = function(t) {
-      self$soilModData$t_dat$AT[t] <- 
-        rbindlist(self$soilModData$soilProfile$soil_layers)$AT %>% 
+      self$soilModData$t_dat$AT_soil_zone[t] <- 
+        rbindlist(self$soilModData$soilProfile$soil_layers)$AT_soil_zone %>% 
         sum()
        ifelse(
          self$soilModData$t_dat$root_frac[t] < 1,
          {self$soilModData$t_dat$AT_sub_soil[t] <- 
-           self$soilModData$t_dat$PT[t] - self$soilModData$t_dat$AT[t]},
+           self$soilModData$t_dat$PT[t] - self$soilModData$t_dat$AT_soil_zone[t]},
          {self$soilModData$t_dat$AT_sub_soil[t] <- 0}
        )
     }
@@ -66,8 +66,8 @@ TranspModule_AT <- R6Class(
   
   private = list(
     .transpCalcFun = function(soil_layer, PT) {
-      soil_layer$AT <- PT * soil_layer$root_frac
-      soil_layer$vwc <- soil_layer$vwc - soil_layer$AT / soil_layer$thiccness
+      soil_layer$AT_soil_zone <- PT * soil_layer$root_frac
+      soil_layer$vwc <- soil_layer$vwc - soil_layer$AT_soil_zone / soil_layer$thiccness
       return(soil_layer)
     }
   )

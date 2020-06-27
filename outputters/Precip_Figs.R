@@ -1,4 +1,4 @@
-## Title: DrainModule_Figs Outputter
+## Title: Precip_Figs Outputter
 ## 
 ## Interface/Abstraction: This object follows the "outputters" 
 ## interface consisting of the methods; Write_z and Write_t
@@ -7,8 +7,7 @@
 ## runOutput: does something
 ## closeCon: closes any open connections
 ##
-## Description: This class is for making figures related to the drain
-## module. This includes deep perc by time.
+## Description: This class is for plotting precipitation, if present
 
 ## Inputs: soilModData
 ## Methods: runOutput()
@@ -16,33 +15,29 @@
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # File OutPutter Class Generator ---------------------------
 ## Outputter that saves data from swstm1d simulation
-DrainModule_Figs <- R6Class(
-  "DrainModule_Figs",
+Precip_Figs <- R6Class(
+  "Precip_Figs",
   public = list(
     soilModData = NULL,
     t_con = NULL,
-    op_ints = NULL,
     owd = NULL,
     
     initialize = function(soilModData, op_list) {
       stopifnot(
-        exists("io_path", soilModData)
+        exists("io_path", soilModData),
+        !is.null(soilModData$t_dat$prec)
       ) 
       self$soilModData <- soilModData
-      self$op_ints <- op_list$op_ints
-      
       self$t_con <- paste0(self$soilModData$io_path, "/outputs/t_dat.csv")
-      
-      self$owd <- paste0(self$soilModData$io_path, "/outputs/DrainModule/") 
+      self$owd <- paste0(self$soilModData$io_path, "/outputs/Precip/") 
       if (!file.exists(self$owd)) { dir.create(self$owd) }
     },
     writeZ = function(t) {},
     writeT = function(t) {},
     runOutput = function() {
-      ## Deep Perc x Time - Bar
+      ## Precip x Time - Bar
       df <- fread(self$t_con, header = TRUE)
       df <- df[-1, ]
-      stopifnot(!is.null(df$deep_perc))
       
       ymax <- RoundTo(max(df$deep_perc), 1, ceiling)
       ystep <- -ymax / 10
@@ -54,21 +49,21 @@ DrainModule_Figs <- R6Class(
       xstep <- ifelse(max(df$time) > 1,
                       ceiling(max(df$time) / 10),
                       max(df$time) / 10)
-      
-      p <- ggplot(df, aes(x = time, y = deep_perc)) +
+      p <- ggplot(df, aes(x = time, y = prec)) +
         geom_bar(stat = "identity",
                  color = "white",
-                 fill = "darkblue",
-                 width = 0.5) +
+                 fill = "blue",
+                 width = 0.25) +
         scale_y_reverse(limits = c(ymax, 0),
                         labels = seq(ymax, 0, ystep),
                         breaks = seq(ymax, 0, ystep)) +
         scale_x_continuous(position = "top",
                            limits = c(xmin, xmax),
                            breaks = seq(min(df$time), max(df$time), xstep)) +
-        labs(y = "Deep Percolation (units)", x = "Time (units)") +
+        labs(y = "Precipitation (units)", x = "Time Step (units)") +
         theme_classic()
-      ggsave(filename = paste0(self$owd, "deepPerc_X_time.png"),
+      
+      ggsave(filename = paste0(self$owd, "precip_X_time.png"),
              plot = p,
              device = "png",
              width = 5,
@@ -80,6 +75,20 @@ DrainModule_Figs <- R6Class(
   )
   #private = list()
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
