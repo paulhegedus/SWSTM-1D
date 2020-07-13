@@ -43,17 +43,30 @@ SWSTM1D_Figs <- R6Class(
     writeZ = function(t) {},
     writeT = function(t) {},
     runOutput = function() {
-      browser()
-      
       # Set Up Output Data for Water Balance
-      tdf <- fread(self$t_con, header = TRUE)
-      tdf$init_w_len <- NA 
       zdf <- fread(self$z_con, header = TRUE)
       zdf$w_len <- zdf$vwc * zdf$thickness
-      tdf$init_w_len[1] <- sum(zdf %>% subset(time == 0) %>% select(w_len))
-      for (i in 2:nrow(tdf)) {
-        tdf$init_w_len[i] <- tdf$w_len[i-1]
-      }
+      tdf <- fread(self$t_con, header = TRUE)
+      tdf$init_w_len <- NA 
+      tdf$w_len[1] <- sum(zdf %>% subset(time == 0) %>% select(w_len))
+      # assuming starting with equal water balance
+      tdf$init_w_len <- c(tdf$w_len[1], tdf$w_len[1:(nrow(tdf) - 1)])
+      zdf_wide <- pivot_wider(zdf, 
+                              names_from = layer_id, 
+                              names_prefix = "layer_", 
+                              values_from = w_len)
+      layer_cols <- 
+        (ncol(zdf_wide) - (length(unique(zdf$layer_id)) - 1)):ncol(zdf_wide)
+      tdf_w_len <- setDT(zdf_wide)[, lapply(.SD, 
+                                            sum, 
+                                            na.rm = TRUE), 
+                                   by = .(time), 
+                                   .SDcols = names(zdf_wide)[layer_cols]] %>%
+        as.data.frame()
+      tdf <- cbind(tdf, tdf_w_len[, -grep("time", names(tdf_w_len))]) 
+      layer_cols <- 
+        (ncol(tdf) - (length(unique(zdf$layer_id)) - 1)):ncol(tdf)
+      
       for (i in 1:nrow(tdf)) {
         tdf$inputs[i] <- 
           ifelse(!is.null(tdf$prec[i]), tdf$prec[i], 0) +
@@ -66,24 +79,9 @@ SWSTM1D_Figs <- R6Class(
           ifelse(!is.null(tdf$w_len[i]), tdf$w_len[i], 0)
       }
       tdf$wb_diff <- tdf$inputs - tdf$fates
-      
-      # split water into layer ID's
-      zdf_wide <- pivot_wider(zdf, 
-                              names_from = layer_id, 
-                              names_prefix = "layer_", 
-                              values_from = w_len)
-      layer_cols <- 
-        (ncol(zdf_wide) - (length(unique(zdf$layer_id)) - 1)):ncol(zdf_wide)
-      tdf_w_len <- setDT(zdf_wide)[, lapply(.SD, 
-                                            sum, 
-                                            na.rm = TRUE), 
-                                   by = .(time), 
-                                   .SDcols = names(zdf_wide)[layer_cols]]
-      tdf <- cbind(tdf, tdf_w_len)
-      
-      
-      tdf <- tdf[-1, ]
-      
+      tdf$wb_diff[1] <- 0
+      #tdf <- tdf[-1, ]
+
       #### MB I/O ####
       p <- private$.plotWBdiff(tdf)
       ggsave(filename = paste0(self$owd, "water_balance_diff.png"),
@@ -94,7 +92,7 @@ SWSTM1D_Figs <- R6Class(
              units = "in")
       
       #### MB Inventory ####
-      p <- private$.plotWBinv(tdf)
+      p <- private$.plotWBinv(tdf, layer_cols)
       ggsave(filename = paste0(self$owd, "water_inventory.png"),
              plot = p,
              device = "png",
@@ -103,7 +101,7 @@ SWSTM1D_Figs <- R6Class(
              units = "in")
       
       #### MB Partition ####
-      ## TODO: Make stacked bar chart with Prec. + Init. Soil Water lines
+      browser()
       p <- private$.plotWBpart(tdf)
       ggsave(filename = paste0(self$owd, "water_partition.png"),
              plot = p,
@@ -123,18 +121,23 @@ SWSTM1D_Figs <- R6Class(
       # scales : number to center the difference on the scale
       scl <-  floor_dec(
         min(subset(wbdf, 
-                   wbdf$Process != "wb_diff")$units),
+                   wbdf$Process != "wb_diff")$units,
+            na.rm = TRUE),
         nchar(round(1 / min(subset(wbdf, 
-                                   wbdf$Process != "wb_diff")$units)))) +
+                                   wbdf$Process != "wb_diff")$units,
+                            na.rm = TRUE)))) +
         (ceiling_dec(
           max(subset(wbdf, 
-                     wbdf$Process != "wb_diff")$units),
+                     wbdf$Process != "wb_diff")$units,
+              na.rm = TRUE),
           nchar(round(1 / max(subset(wbdf, 
-                                     wbdf$Process != "wb_diff")$units)))) -
+                                     wbdf$Process != "wb_diff")$units, 
+                              na.rm = TRUE)))) -
            floor_dec(
-             min(subset(wbdf, wbdf$Process != "wb_diff")$units),
+             min(subset(wbdf, wbdf$Process != "wb_diff")$units, na.rm = TRUE),
              nchar(round(1 / min(subset(wbdf, 
-                                        wbdf$Process != "wb_diff")$units))))
+                                        wbdf$Process != "wb_diff")$units, 
+                                 na.rm = TRUE))))
         ) / 2
       
       # relevel factors (3)
@@ -153,7 +156,7 @@ SWSTM1D_Figs <- R6Class(
                       ceiling(max(wbdf$time) / 10),
                       max(wbdf$time) / 10)
       p <- ggplot(data = wbdf, aes(x = time, color = Process)) +
-        geom_line(aes(y = units, linetype = Process)) +
+        geom_line(aes(y = units, linetype = Process), na.rm = TRUE) +
         scale_y_continuous(name="Water (length)", 
                            limits = c(ymin, ymax),
                            #breaks = seq(ymin, ymax, ystep), 
@@ -186,8 +189,8 @@ SWSTM1D_Figs <- R6Class(
                                                   tdf$fates),3))))
       return(p)
     },
-    .plotWBinv = function(tdf) {
-      browser()
+    .plotWBinv = function(tdf, layer_cols) {
+      layer_names <- names(tdf)[layer_cols]
       inv_col <- match(c("time", 
                          "prec",
                          "w_len",
@@ -195,13 +198,14 @@ SWSTM1D_Figs <- R6Class(
                          "AE", 
                          "AT_soil_zone", 
                          "deep_perc", 
-                         "runoff"), 
+                         "runoff",
+                         layer_names), 
                        names(tdf))
       inv_col <- inv_col[!is.na(inv_col)]
       wbdf <- tdf[, ..inv_col]
       
       prec <- private$.plotPrec(wbdf, "Water Inventory")
-      pool <- private$.plotPools(wbdf)
+      pool <- private$.plotPools(wbdf, layer_names)
       flux <- private$.plotFluxes(wbdf)
       p <- plot_grid(prec, 
                      pool, 
@@ -212,6 +216,7 @@ SWSTM1D_Figs <- R6Class(
       return(p)
     },
     .plotWBpart = function(tdf) {
+      browser()
       inv_col <- match(c("time", 
                          "prec"), 
                        names(tdf))
@@ -270,10 +275,11 @@ SWSTM1D_Figs <- R6Class(
         ggtitle(fig_title)
       return(prec)
     },
-    .plotPools = function(wbdf) {
+    .plotPools = function(wbdf, layer_names) {
+      browser()
       # pool plot
       inv_col <- match(c("time",
-                         "w_len"), 
+                         layer_names), 
                        names(wbdf))
       inv_col <- inv_col[!is.na(inv_col)]
       pools <- wbdf[, ..inv_col]
@@ -308,7 +314,7 @@ SWSTM1D_Figs <- R6Class(
         scale_x_continuous(name = "Time (units)",
                            limits = c(xmin, xmax),
                            breaks = seq(xmin, xmax, xstep)) + 
-        scale_color_discrete(name = "", labels = "Soil Water") +
+        scale_color_discrete(name = "", labels = levels(pools$PoolOrFlux)) +
         theme_classic() +
         theme(legend.position = "top") +
         theme(axis.title.x = element_blank(),
@@ -420,8 +426,12 @@ SWSTM1D_Figs <- R6Class(
       if (any(grepl("deep_perc", names(df)))) {
         names(df)[grep("deep_perc", names(df))] <- "Deep Percolation"
       }
-      if (any(grepl("w_len", names(df)))) {
-        names(df)[grep("w_len", names(df))] <- "Soil Water"
+      if (any(grepl("layer_", names(df)))) {
+        names(df)[grep("layer_", names(df))] <- paste0("Layer ", 
+                                                       str_sub(names(df)[grep("layer_", names(df))], 
+                                                               7, 
+                                                               nchar(names(df)[grep("layer_", names(df))])),
+                                                       " Soil Water")
       }
       if (any(grepl("runoff", names(df)))) {
         names(df)[grep("runoff", names(df))] <- "Surface Runoff"
