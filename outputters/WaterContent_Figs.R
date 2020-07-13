@@ -1,4 +1,4 @@
-## Title: DrainModule_Figs Outputter
+## Title:WaterContent_Figs Outputter
 ## 
 ## Interface/Abstraction: This object follows the "outputters" 
 ## interface consisting of the methods; Write_z and Write_t
@@ -7,8 +7,8 @@
 ## runOutput: does something
 ## closeCon: closes any open connections
 ##
-## Description: This class is for making figures related to the drain
-## module. This includes deep perc by time.
+## Description: This class is for making figures related to water content
+## module. This includes vwc by time and depth
 
 ## Inputs: soilModData
 ## Methods: runOutput()
@@ -16,8 +16,8 @@
 ##@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # File OutPutter Class Generator ---------------------------
 ## Outputter that saves data from swstm1d simulation
-DrainModule_Figs <- R6Class(
-  "DrainModule_Figs",
+WaterContent_Figs <- R6Class(
+  "WaterContent_Figs",
   public = list(
     soilModData = NULL,
     t_con = NULL,
@@ -33,12 +33,13 @@ DrainModule_Figs <- R6Class(
       
       self$t_con <- paste0(self$soilModData$io_path, "/outputs/t_dat.csv")
       
-      self$owd <- paste0(self$soilModData$io_path, "/outputs/DrainModule/") 
+      self$owd <- paste0(self$soilModData$io_path, "/outputs/WaterContent/") 
       if (!file.exists(self$owd)) { dir.create(self$owd) }
     },
     writeZ = function(t) {},
     writeT = function(t) {},
     runOutput = function() {
+      ## Deep Perc x Time - Bar
       df <- fread(self$t_con, header = TRUE)
       df <- df[-1, ]
       stopifnot(!is.null(df$deep_perc))
@@ -56,7 +57,6 @@ DrainModule_Figs <- R6Class(
   ),
   private = list(
     .plotDeepPercBar = function(df) {
-      ## Deep Perc x Time - Bar
       ymax <- RoundTo(max(df$deep_perc), 1, ceiling)
       ystep <- -ymax / 10
       xmax <- max(df$time) + 0.25 # for plotting xmax w/ inverse y axis

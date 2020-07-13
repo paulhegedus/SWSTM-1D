@@ -80,7 +80,7 @@ EvapModule_Figs <- R6Class(
         scale_x_continuous(limits = c(xmin, xmax),
                            breaks = seq(min(df$time), max(df$time), xstep)) +
         labs(y = "Evaporation (units)", x = "Time (units)") +
-        theme_classic()
+        theme_bw()
       return(p)
     }
   )

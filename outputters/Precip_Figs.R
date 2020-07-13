@@ -74,7 +74,7 @@ Precip_Figs <- R6Class(
                            limits = c(xmin, xmax),
                            breaks = seq(min(df$time), max(df$time), xstep)) +
         labs(y = "Precipitation (units)", x = "Time Step (units)") +
-        theme_classic()
+        theme_bw()
       return(p)
     }
   )

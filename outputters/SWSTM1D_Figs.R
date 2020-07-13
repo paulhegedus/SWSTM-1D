@@ -101,8 +101,7 @@ SWSTM1D_Figs <- R6Class(
              units = "in")
       
       #### MB Partition ####
-      browser()
-      p <- private$.plotWBpart(tdf)
+      p <- private$.plotWBpart(tdf, layer_cols)
       ggsave(filename = paste0(self$owd, "water_partition.png"),
              plot = p,
              device = "png",
@@ -180,7 +179,7 @@ SWSTM1D_Figs <- R6Class(
         scale_x_continuous(name = "Time (units)",
                            limits = c(xmin, xmax),
                            breaks = seq(xmin, xmax, xstep)) +
-        theme_classic() +
+        theme_bw() +
         theme(axis.text.x = element_text(angle = 45, hjust = 1),
               legend.position = "top") +
         ggtitle("Water Balance",
@@ -206,7 +205,7 @@ SWSTM1D_Figs <- R6Class(
       
       prec <- private$.plotPrec(wbdf, "Water Inventory")
       pool <- private$.plotPools(wbdf, layer_names)
-      flux <- private$.plotFluxes(wbdf)
+      flux <- private$.plotFates(wbdf)
       p <- plot_grid(prec, 
                      pool, 
                      flux, 
@@ -215,8 +214,8 @@ SWSTM1D_Figs <- R6Class(
                      rel_heights = c(0.5, 1, 1))
       return(p)
     },
-    .plotWBpart = function(tdf) {
-      browser()
+    .plotWBpart = function(tdf, layer_cols) {
+      layer_names <- names(tdf)[layer_cols]
       inv_col <- match(c("time", 
                          "prec"), 
                        names(tdf))
@@ -225,21 +224,26 @@ SWSTM1D_Figs <- R6Class(
       prec <- private$.plotPrec(wbdf, "Water Partition")
       
       inv_col <- match(c("time",
-                         "inputs",
-                         "w_len",
+                         "prec",
                          "AE", 
                          "AT_soil_zone", 
                          "deep_perc", 
-                         "runoff"), 
+                         "runoff",
+                         layer_names), 
                        names(tdf))
       inv_col <- inv_col[!is.na(inv_col)]
-      wbdf <- tdf[, ..inv_col]
+      wbdf <- tdf[, ..inv_col] %>% as.data.frame()
+      layer_cols <- grep(paste(layer_names, collapse = "|"), names(wbdf))
+      init_layers <- rbind(wbdf[1, layer_cols] ,wbdf[1:(nrow(wbdf) - 1), layer_cols]) %>%
+        `names<-`(paste0("init_", names(wbdf)[layer_cols]))
+      wbdf <- cbind(wbdf, init_layers)
       part <- private$.plotPartition(wbdf)
       
       p <- plot_grid(prec, 
                      part, 
                      ncol = 1, 
-                     align = "v",
+                     align = "vh",
+                     axis = "lr",
                      rel_heights = c(0.5, 2))
       return(p)
     },
@@ -267,7 +271,7 @@ SWSTM1D_Figs <- R6Class(
         scale_y_reverse(limits = c(ceiling(ymax), 0),
                         labels = seq(ceiling(ymax), 0, ystep),
                         breaks = seq(ceiling(ymax), 0, ystep)) +
-        theme_classic() +
+        theme_bw() +
         theme(axis.title.x = element_blank(),
               axis.text.x = element_blank(),
               axis.ticks.x = element_blank()) +
@@ -276,7 +280,6 @@ SWSTM1D_Figs <- R6Class(
       return(prec)
     },
     .plotPools = function(wbdf, layer_names) {
-      browser()
       # pool plot
       inv_col <- match(c("time",
                          layer_names), 
@@ -315,15 +318,15 @@ SWSTM1D_Figs <- R6Class(
                            limits = c(xmin, xmax),
                            breaks = seq(xmin, xmax, xstep)) + 
         scale_color_discrete(name = "", labels = levels(pools$PoolOrFlux)) +
-        theme_classic() +
+        theme_bw() +
         theme(legend.position = "top") +
         theme(axis.title.x = element_blank(),
               axis.text.x = element_blank(),
               axis.ticks.x = element_blank())
       return(pool)
     },
-    .plotFluxes = function(wbdf) {
-      # flux plot
+    .plotFates = function(wbdf) {
+      # fate plot
       inv_col <- match(c("time", 
                          "AE", 
                          "AT_soil_zone", 
@@ -331,29 +334,29 @@ SWSTM1D_Figs <- R6Class(
                          "runoff"), 
                        names(wbdf))
       inv_col <- inv_col[!is.na(inv_col)]
-      fluxes <- wbdf[, ..inv_col]
-      fluxes <- gather(fluxes, "PoolOrFlux", "units", -"time")
+      fates <- wbdf[, ..inv_col]
+      fates <- gather(fates, "PoolOrFlux", "units", -"time")
       
-      xmax <- max(fluxes$time) #+ 0.25 # for plotting xmax w/ inverse y axis
-      xmin <- min(fluxes$time) #- 0.25 # see ^
-      xstep <- ifelse(max(fluxes$time) > 1,
-                      ceiling(max(fluxes$time) / 10),
-                      max(fluxes$time) / 10)
-      ymax <- ceiling_dec(max(fluxes$units),
-                          nchar(round(1 / max(fluxes$units))))
-      ymin <- floor_dec(min(fluxes$units),
-                        nchar(round(1 / min(fluxes$units))))
-      ystep <- (ceiling_dec(max(fluxes$units),
-                            nchar(round(1 / max(fluxes$units)))) - 
-                  floor_dec(min(fluxes$units),
-                            nchar(round(1 / min(fluxes$units))))
+      xmax <- max(fates$time) #+ 0.25 # for plotting xmax w/ inverse y axis
+      xmin <- min(fates$time) #- 0.25 # see ^
+      xstep <- ifelse(max(fates$time) > 1,
+                      ceiling(max(fates$time) / 10),
+                      max(fates$time) / 10)
+      ymax <- ceiling_dec(max(fates$units),
+                          nchar(round(1 / max(fates$units))))
+      ymin <- floor_dec(min(fates$units),
+                        nchar(round(1 / min(fates$units))))
+      ystep <- (ceiling_dec(max(fates$units),
+                            nchar(round(1 / max(fates$units)))) - 
+                  floor_dec(min(fates$units),
+                            nchar(round(1 / min(fates$units))))
       ) / 10
       
-      fluxes <- private$.legitNames(fluxes)
-      fluxes$PoolOrFlux <- factor(fluxes$PoolOrFlux)
-      flux_names <- levels(fluxes$PoolOrFlux)
+      fates <- private$.legitNames(fates)
+      fates$PoolOrFlux <- factor(fates$PoolOrFlux)
+      fate_names <- levels(fates$PoolOrFlux)
       
-      flux <- ggplot(fluxes, aes(x = time)) +
+      fate <- ggplot(fates, aes(x = time)) +
         geom_line(aes(y = units, color = PoolOrFlux)) + 
         scale_y_continuous(name = "Fate (units)",
                            limits = c(ymin, ymax),
@@ -364,46 +367,57 @@ SWSTM1D_Figs <- R6Class(
                            limits = c(xmin, xmax),
                            breaks = seq(xmin, xmax, xstep)) + 
         scale_color_discrete(name = "",
-                             labels = flux_names) +
-        theme_classic() +
+                             labels = fate_names) +
+        theme_bw() +
         theme(legend.position = "top",
               plot.title = element_text(hjust = 0.5)) +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
-      return(flux)
+      return(fate)
     },
     .plotPartition = function(wbdf) {
-      fates <- gather(wbdf, "PoolOrFlux", "units", -"time")
-      fates <- private$.legitNames(fates)
-      fates$PoolOrFlux <- factor(fates$PoolOrFlux)
-      fate_names <- levels(fates$PoolOrFlux)
+      wbdf <- wbdf[-1, ]
+      parts <- gather(wbdf, "PoolOrFlux", "units", -"time")
+      parts <- private$.legitNames(parts)
+      parts$PoolOrFlux <- factor(parts$PoolOrFlux)
+      part_names <- levels(parts$PoolOrFlux)
+      parts$WBID <- ifelse(grepl("Precip|Init.", parts$PoolOrFlux),
+                           "Inputs",
+                           "Outputs") %>% 
+        factor()
       
-      ymax <- ceiling_dec(max(fates$units),nchar(round(1/max(fates$units))))
-      ymin <- 0 #floor_dec(min(fates$units),nchar(round(1/min(fates$units))))
+      ylims <- aggregate(parts$units, 
+                         by = list(WBID = parts$WBID, 
+                                   time = parts$time), 
+                         FUN=sum)
+      ymax <- ceiling_dec(max(ylims$x), nchar(round(1 / max(ylims$x))))
+      ymin <- 0 #floor_dec(min(parts$units),nchar(round(1/min(parts$units))))
       ystep <- (ymax - ymin) / 10
-      xmax <- max(fates$time) #+ 0.25 # for plotting xmax w/ inverse y axis
-      xmin <- min(fates$time) #- 0.25 # see ^
-      xstep <- ifelse(max(fates$time) > 1,
-                      ceiling(max(fates$time) / 10),
-                      max(fates$time) / 10)
       
-      fate <- ggplot(fates, aes(x = time)) +
-        geom_line(aes(y = units, color = PoolOrFlux)) +
+      xmax <- max(parts$time) #+ 0.25 # for plotting xmax w/ inverse y axis
+      xmin <- min(parts$time) #- 0.25 # see ^
+      xstep <- ifelse(max(parts$time) > 1,
+                      ceiling(max(parts$time) / 10),
+                      max(parts$time) / 10)
+      xouts <- seq(xmin, xmax, xstep)
+      # prevents too many timesteps being plotted
+      parts <- parts[parts$time %in% xouts,]
+
+      part <- ggplot(parts, aes(x = WBID, y = units, fill = PoolOrFlux)) +
+        geom_bar(stat="identity") + 
+        facet_grid(.~time) + 
         scale_y_continuous(name = "Water (length)",
                            limits = c(ymin, ymax),
                            breaks=seq(ymin, ymax, ystep),
                            labels=seq(ymin, ymax, ystep)) + 
-        #scale_x_date(name="Time (YYYY-MM-DD)",date_breaks = "30 days") +
-        scale_x_continuous(name = "Time (units)",
-                           limits = c(xmin, xmax),
-                           breaks = seq(xmin, xmax, xstep)) +
-        scale_color_discrete(name = "",
-                             labels = fate_names) +
-        theme_classic() +
+        labs(x = "Time") +
+        scale_fill_discrete(name = "",
+                            labels = part_names) +
+        theme_bw() +
         theme(legend.position = "top",
               legend.justification = "center",
               plot.title = element_text(hjust = 0.5)) +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
-      return(fate)
+      return(part)
     },
     .legitNames = function(df) {
       og_names <- names(df)
@@ -426,12 +440,19 @@ SWSTM1D_Figs <- R6Class(
       if (any(grepl("deep_perc", names(df)))) {
         names(df)[grep("deep_perc", names(df))] <- "Deep Percolation"
       }
-      if (any(grepl("layer_", names(df)))) {
-        names(df)[grep("layer_", names(df))] <- paste0("Layer ", 
-                                                       str_sub(names(df)[grep("layer_", names(df))], 
+      if (any(grepl("^layer_", names(df)))) {
+        names(df)[grep("^layer_", names(df))] <- paste0("Layer ", 
+                                                       str_sub(names(df)[grep("^layer_", names(df))], 
                                                                7, 
-                                                               nchar(names(df)[grep("layer_", names(df))])),
+                                                               nchar(names(df)[grep("^layer_", names(df))])),
                                                        " Soil Water")
+      }
+      if (any(grepl("^init_layer_", names(df)))) {
+        names(df)[grep("^init_layer_", names(df))] <- paste0("Layer ", 
+                                                        str_sub(names(df)[grep("^init_layer_", names(df))], 
+                                                                12, 
+                                                                nchar(names(df)[grep("^init_layer_", names(df))])),
+                                                        " Init. Soil Water")
       }
       if (any(grepl("runoff", names(df)))) {
         names(df)[grep("runoff", names(df))] <- "Surface Runoff"
@@ -439,7 +460,7 @@ SWSTM1D_Figs <- R6Class(
       if (any(grepl("outputs", names(df)))) {
         names(df)[grep("outputs", names(df))] <- "Outputs"
       }
-      if (any(grepl("pec", names(df)))) {
+      if (any(grepl("prec", names(df)))) {
         names(df)[grep("prec", names(df))] <- "Precipitation"
       }
       

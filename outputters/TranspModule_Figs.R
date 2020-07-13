@@ -88,7 +88,7 @@ TranspModule_Figs <- R6Class(
         scale_x_continuous(limits = c(xmin, xmax),
                            breaks = seq(min(df$time), max(df$time), xstep)) +
         labs(y = "Transpiration (units)", x = "Time (units)") +
-        theme_classic()
+        theme_bw()
       return(p)
     },
     .plotSSTranspBar = function(df) {
@@ -114,7 +114,7 @@ TranspModule_Figs <- R6Class(
         scale_x_continuous(limits = c(xmin, xmax),
                            breaks = seq(min(df$time), max(df$time), xstep)) +
         labs(y = "Sub-Soil Transpiration (units)", x = "Time (units)") +
-        theme_classic()
+        theme_bw()
       return(p)
     }
   )
