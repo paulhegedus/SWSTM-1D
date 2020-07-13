@@ -1,4 +1,4 @@
-time,thickness,vwc
-0,1,0.7
-0,1,0.7
-0,1,0.7
+time, layer_id, thickness,vwc
+0,1,1,0.7
+0,1,1,0.7
+0,3,1,0.7

@@ -39,16 +39,29 @@ Precip_Figs <- R6Class(
       df <- fread(self$t_con, header = TRUE)
       df <- df[-1, ]
       
+      p <- private$.plotPrecBar(df)
+      ggsave(filename = paste0(self$owd, "precip_X_time.png"),
+             plot = p,
+             device = "png",
+             width = 5,
+             height = 7.5,
+             units = "in")
+      #print(p)
+    },
+    closeCon = function() {}
+  ),
+  private = list(
+    .plotPrecBar = function(df) {
       ymax <- RoundTo(max(df$deep_perc), 1, ceiling)
       ystep <- -ymax / 10
       xmax <- max(df$time) + 0.25 # for plotting xmax w/ inverse y axis
       xmin <- min(df$time) - 0.25 # see ^
-      
       # if the maximum timestep is greater than 1 use integers for scale
       # else use decimals in scale (e.g tmax = 0.9 years by 0.1 intervals)
       xstep <- ifelse(max(df$time) > 1,
                       ceiling(max(df$time) / 10),
                       max(df$time) / 10)
+      
       p <- ggplot(df, aes(x = time, y = prec)) +
         geom_bar(stat = "identity",
                  color = "white",
@@ -62,18 +75,9 @@ Precip_Figs <- R6Class(
                            breaks = seq(min(df$time), max(df$time), xstep)) +
         labs(y = "Precipitation (units)", x = "Time Step (units)") +
         theme_classic()
-      
-      ggsave(filename = paste0(self$owd, "precip_X_time.png"),
-             plot = p,
-             device = "png",
-             width = 5,
-             height = 7.5,
-             units = "in")
-      #print(p)
-    },
-    closeCon = function() {}
+      return(p)
+    }
   )
-  #private = list()
 )
 
 

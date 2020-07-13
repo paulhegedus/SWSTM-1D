@@ -44,6 +44,19 @@ DrainModule_Figs <- R6Class(
       df <- df[-1, ]
       stopifnot(!is.null(df$deep_perc))
       
+      p <- private$.plotDeepPercBar(df)
+      ggsave(filename = paste0(self$owd, "deepPerc_X_time.png"),
+             plot = p,
+             device = "png",
+             width = 5,
+             height = 7.5,
+             units = "in")
+      #print(p)
+    },
+    closeCon = function() {}
+  ),
+  private = list(
+    .plotDeepPercBar = function(df) {
       ymax <- RoundTo(max(df$deep_perc), 1, ceiling)
       ystep <- -ymax / 10
       xmax <- max(df$time) + 0.25 # for plotting xmax w/ inverse y axis
@@ -68,17 +81,9 @@ DrainModule_Figs <- R6Class(
                            breaks = seq(min(df$time), max(df$time), xstep)) +
         labs(y = "Deep Percolation (units)", x = "Time (units)") +
         theme_classic()
-      ggsave(filename = paste0(self$owd, "deepPerc_X_time.png"),
-             plot = p,
-             device = "png",
-             width = 5,
-             height = 7.5,
-             units = "in")
-      #print(p)
-    },
-    closeCon = function() {}
+      return(p)
+    }
   )
-  #private = list()
 )
 
 

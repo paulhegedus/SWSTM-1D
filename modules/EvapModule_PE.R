@@ -77,8 +77,10 @@ EvapModule_PE <- R6Class(
           }
         }
       } else {
-        lapply(self$soilModData$soilProfile$soil_layers, 
-               function(soil_layer) soil_layer$AE <- 0)
+        for (i in 1:length(self$soilModData$soilProfile$soil_layers)) {
+          self$soilModData$soilProfile$soil_layers[[i]] <- 
+            private$.resetAE(self$soilModData$soilProfile$soil_layers[[i]])
+        }
       }
     },
     
@@ -91,13 +93,17 @@ EvapModule_PE <- R6Class(
   
   private = list(
     .evapCalcFun = function(soil_layer, evap_budget) {
-      if (soil_layer$vwc - soil_layer$wp > evap_budget / soil_layer$thiccness) {
+      if (soil_layer$vwc - soil_layer$wp > evap_budget / soil_layer$thickness) {
         soil_layer$AE <- evap_budget
-        soil_layer$vwc <- soil_layer$vwc - soil_layer$AE / soil_layer$thiccness
+        soil_layer$vwc <- soil_layer$vwc - soil_layer$AE / soil_layer$thickness
       } else {
-        soil_layer$AE <- soil_layer$vwc - soil_layer$wp * soil_layer$thiccness
+        soil_layer$AE <- soil_layer$vwc - soil_layer$wp * soil_layer$thickness
         soil_layer$vwc <- soil_layer$wp
       }
+      return(soil_layer)
+    },
+    .resetAE = function(soil_layer) {
+      soil_layer$AE <- 0
       return(soil_layer)
     }
   )

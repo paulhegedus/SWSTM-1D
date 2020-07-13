@@ -17,8 +17,10 @@ library(R6)
 library(tidyverse)
 library(DescTools)
 library(data.table)
+library(Metrics)
+library(cowplot)
 
-# Check Dependencies ---------------------------
+# Functions ---------------------------
 checkForModelReqs <- function(mod_path, io_path) {
   if (!file.exists(paste0(mod_path, "/modules"))) {
     stop("Path to 'modules' empty.")
@@ -27,6 +29,8 @@ checkForModelReqs <- function(mod_path, io_path) {
     stop("Path to 'inputs' empty.")
   } 
 }
+floor_dec <- function(x, level = 1) round(x - 5 * 10^(-level - 1), level)
+ceiling_dec <- function(x, level = 1) round(x + 5 * 10^(-level - 1), level)
 
 # SWSTM1D Class Generator ---------------------------
 # Soil Water and Solute Transport Model 1D
@@ -60,6 +64,9 @@ SWSTM1D <- R6Class(
         mod_path = mod_path,  
         io_path = io_path 
       )
+      # Add volume of water column to t_dat
+      self$soilModData$t_dat$w_len <- 0
+      
       # 2) Lists for modules & outputters have to be generated from user input
       stopifnot(
         !is.null(module_list)
@@ -85,6 +92,8 @@ SWSTM1D <- R6Class(
     execute = function() {
       for (t in 1:nrow(self$soilModData$t_dat)) {
         lapply(self$soil_mod_list, private$.runModules, t)
+        private$.calcVolume(t)
+        
         lapply(self$op_list, private$.runZToutputters, t)
         lapply(self$op_list, private$.runToutputters, t)
       }
@@ -136,6 +145,13 @@ SWSTM1D <- R6Class(
     },
     .runOutputs = function(outputter) {
       outputter$runOutput()
+    },
+    .calcVolume = function(t) {
+      z_dat <- do.call(
+        rbind.data.frame,
+        lapply(self$soilModData$soilProfile$soil_layers, as.data.frame)
+      )
+      self$soilModData$t_dat$w_len[t] <- sum(z_dat$vwc * z_dat$thickness) 
     }
   )
 )
@@ -170,13 +186,12 @@ SoilModData <- R6Class(
         length(unique(z_dat$time)) == 1,  
         unique(z_dat$time) == 0 # Checks that user knows what they're inputting
       ) 
-      names(z_dat)[grep("thickness",names(z_dat))] <- "thiccness"
       self$t_dat <- t_dat
       self$z_dat <- z_dat
       self$mod_path <- mod_path
       self$io_path <- io_path
       
-      self$z_dat$z <- cumsum(self$z_dat$thiccness)
+      self$z_dat$z <- cumsum(self$z_dat$thickness)
     }, 
     
     buildSoilProfile = function() {

@@ -34,29 +34,29 @@ module_list <- list(
   list(module = "RootModule_Dist",
        t_dat = "RootModule_root_depths",
        crop = "wheat"),
-  # list(module = "ET_Partition_E",
+  # list(module = "ET_Partition_E", # use explicit even for just E 
   #      t_dat = "ET_inputs"),
-  # list(module = "ET_Partition_T",
+  # list(module = "ET_Partition_T", # use explicit even for just T
   #     t_dat = "ET_inputs"),
-  list(module = "ET_Partition_ET_explicit", # E and T explicit 
+  list(module = "ET_Partition_ET_explicit", # E and T explicit
       t_dat = "ET_inputs_explicit"), # pre partitioned E and T
-  list(module = "TranspModule_AT"), 
-  # list(module = "TranspModule_PT_noLim",
-  #      z_dat = "wp_data"),
-  list(module = "EvapModule_AE",
-       max_evap_depth = 5)#,
-  # list(module = "EvapModule_PE",
-  #      z_dat = "wp_data",
-  #      max_evap_depth = 5) # wp_data not needed if passed in w/transp mod
+  # list(module = "TranspModule_AT")
+  list(module = "TranspModule_PT_noLim",
+       z_dat = "wp_data"),
+  # list(module = "EvapModule_AE",
+  #      max_evap_depth = 5)#,
+  list(module = "EvapModule_PE",
+       z_dat = "wp_data",
+       max_evap_depth = 5) # wp_data not needed if passed in w/transp mod
 )
 # Outputter names
-outputter_list <- list( # NULL 
+outputter_list <-  list(  # NULL
  list(op = "SWSTM1D_OP",
       t_int = 1, # time intervals to print t level data
       z_int = 1), # time intervals to print z level data
  list(op = "SWSTM1D_Figs",
-      t_int = 1, 
-      z_int = 1), 
+      t_int = 1,
+      z_int = 1)
  # list(op = "Precip_Figs"),
  # list(op = "DrainModule_Figs",
  #      op_ints = 1), # intervals for plotting?
@@ -66,8 +66,6 @@ outputter_list <- list( # NULL
  #      op_ints = 1)
 )
 
- # evap x time - bar - EvapModule_Figs
- 
 # Source Code ---------------------------
 source(paste0(mod_path, "/SWSTM1D_sourceCode.R"))
 

@@ -45,6 +45,20 @@ EvapModule_Figs <- R6Class(
       df <- df[-1, ]
       stopifnot(!is.null(df$AE))
       
+      p <- private$.plotEvapBar(df)
+      ggsave(filename = paste0(self$owd, "evap_X_time.png"),
+             plot = p,
+             device = "png",
+             width = 5,
+             height = 7.5,
+             units = "in")
+      #print(p)
+      
+    },
+    closeCon = function() {}
+  ),
+  private = list(
+    .plotEvapBar = function(df) {
       ymax <- RoundTo(max(df$AE), 1, ceiling)
       ystep <- ymax / 10
       xmax <- max(df$time) + 0.25 # for plotting xmax w/ inverse y axis
@@ -67,18 +81,9 @@ EvapModule_Figs <- R6Class(
                            breaks = seq(min(df$time), max(df$time), xstep)) +
         labs(y = "Evaporation (units)", x = "Time (units)") +
         theme_classic()
-      ggsave(filename = paste0(self$owd, "evap_X_time.png"),
-             plot = p,
-             device = "png",
-             width = 5,
-             height = 7.5,
-             units = "in")
-      #print(p)
-      
-    },
-    closeCon = function() {}
+      return(p)
+    }
   )
-  #private = list()
 )
 
 

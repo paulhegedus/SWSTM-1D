@@ -67,7 +67,7 @@ TranspModule_AT <- R6Class(
   private = list(
     .transpCalcFun = function(soil_layer, PT) {
       soil_layer$AT_soil_zone <- PT * soil_layer$root_frac
-      soil_layer$vwc <- soil_layer$vwc - soil_layer$AT_soil_zone / soil_layer$thiccness
+      soil_layer$vwc <- soil_layer$vwc - soil_layer$AT_soil_zone / soil_layer$thickness
       return(soil_layer)
     }
   )
